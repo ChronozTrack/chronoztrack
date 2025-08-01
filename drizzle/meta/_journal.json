@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1753771637879,
+      "tag": "0000_brainy_katie_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1753771794266,
+      "tag": "0001_fts-users",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1753771860868,
+      "tag": "0002_init-value",
+      "breakpoints": true
+    }
+  ]
+}

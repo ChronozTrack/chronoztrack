@@ -1,0 +1,57 @@
+{
+	"terminal.integrated.localEchoLatencyThreshold": -1,
+	"terminal.integrated.localEchoEnabled": "off",
+	"explorer.compactFolders": false,
+	"explorer.sortOrder": "filesFirst",
+	"files.autoSave": "onFocusChange",
+	"debug.console.fontSize": 12,
+	"inlineChat.mode": "preview",
+	"editor.fontFamily": "JetBrains Mono, Menlo, Monaco, Courier New, monospace",
+	"editor.fontWeight": "normal",
+	"editor.fontSize": 12,
+	"editor.lineHeight": 1.5,
+	"editor.letterSpacing": 0,
+	"editor.tabSize": 2,
+	"editor.insertSpaces": true,
+	"window.commandCenter": false,
+	"workbench.preferredDarkColorTheme": "Monospace Dark",
+	"workbench.preferredLightColorTheme": "Tokyo Night Storm",
+	"workbench.iconTheme": "monospace",
+	"window.autoDetectColorScheme": true,
+	"workbench.layoutControl.enabled": false,
+	"workbench.tree.indent": 12,
+	"workbench.startupEditor": "none",
+	"workbench.editorAssociations": {
+		"*.md": "vscode.markdown.preview.editor"
+	},
+	"workbench.editor.customLabels.patterns": {
+		"**/src/routes/**/+layout.svelte": "${dirname} - Layout",
+		"**/src/routes/**/+layout.server.ts": "${dirname} - Layout Server",
+		"**/src/routes/**/+layout.server.js": "${dirname} - Layout Server",
+		"**/src/routes/**/+page.svelte": "${dirname} - Page",
+		"**/src/routes/**/+page.server.ts": "${dirname} - Page Server",
+		"**/src/routes/**/+page.server.js": "${dirname} - Page Server",
+		"**/src/routes/**/+page.ts": "${dirname} - Page Load",
+		"**/src/routes/**/+page.js": "${dirname} - Page Load",
+		"**/src/routes/**/+error.svelte": "${dirname} - Error",
+		"**/src/routes/**/+layout.ts": "${dirname} - Layout Load",
+		"**/src/routes/**/+layout.js": "${dirname} - Layout Load"
+	},
+	"svelte.enable-ts-plugin": true,
+	"svelte.ui.svelteKitFilesContextMenu.enable": "always",
+	"svelte.plugin.svelte.format.config.svelteBracketNewLine": false,
+	"svelte.ask-to-enable-ts-plugin": false,
+	"IDX.aI.enableInlineCompletion": true,
+	"IDX.aI.enableCodebaseIndexing": true,
+	"svelte.plugin.svelte.format.config.printWidth": 120,
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	},
+	"files.associations": {
+		"*.css": "tailwindcss",
+		"*.scss": "tailwindcss",
+	},
+	"editor.quickSuggestions": {
+		"strings": "on"
+	},
+}
