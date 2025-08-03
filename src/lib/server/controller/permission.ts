@@ -1,18 +1,7 @@
 import type { UserAction, PermissionAction, User } from "$lib/app-types"
-export type PermissionResource = string | string[] | URL;
+import {pathnameToDots} from "$lib/utils";
 
-const pathnameToDots = (pathname: string): string => {
-  return pathname
-    .split('/')
-    .filter(Boolean)
-    .map(part => {
-      if (/^\[.*\]$/.test(part)) return null;       // `[userId]` → null
-      if (/^\d+$/.test(part)) return null;          // `123` → null
-      return part.replaceAll("-", "_");
-    })
-    .filter(Boolean)
-    .join('.');
-};
+export type PermissionResource = string | string[] | URL;
   
 const ACTIONS_MAP: Record<UserAction, PermissionAction> = {
   create: 'canCreate',

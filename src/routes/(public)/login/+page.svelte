@@ -14,9 +14,14 @@
 	const loginForm: SubmitFunction = () => {
 		isBusy = true;
 		return async ({ result }) => {
-			console.log(result);
-			isBusy = false;
-			applyAction(result);
+			if (result.type === 'error') {
+				console.error(result.error);
+			} else {
+				if (result.type === 'success') {
+				applyAction(result);
+					isBusy = false;
+				}
+			}
 		};
 	};
 </script>

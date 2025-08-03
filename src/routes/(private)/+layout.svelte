@@ -7,11 +7,17 @@
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import { APP_PAGES, SETTING_PAGES } from '$lib/defaults/menus';
+	import { page } from '$app/state';
 
 	let { data, children }: LayoutProps = $props();
+
 	const permissions = new Set(Object.keys(data.user?.permissions ?? {}));
 	const userRoutes = APP_PAGES.filter((route) => permissions.has(route.resource));
 	const settingRoutes = SETTING_PAGES.filter((route) => permissions.has(route.resource));
+	const currentRoute = [...userRoutes, ...settingRoutes].find(
+		(route) => route.href === page.url.pathname
+	);
+	const currentResources = currentRoute?.resource?.split('.') ?? [];
 </script>
 
 {#if data.user}
@@ -26,17 +32,20 @@
 					<div class="flex items-center gap-2 px-4">
 						<Sidebar.Trigger class="-ml-1" />
 						<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
-						<Breadcrumb.Root>
-							<Breadcrumb.List>
-								<Breadcrumb.Item class="hidden md:block">
-									<Breadcrumb.Link href="#">Building Your Application</Breadcrumb.Link>
-								</Breadcrumb.Item>
-								<Breadcrumb.Separator class="hidden md:block" />
-								<Breadcrumb.Item>
-									<Breadcrumb.Page>Data Fetching</Breadcrumb.Page>
-								</Breadcrumb.Item>
-							</Breadcrumb.List>
-						</Breadcrumb.Root>
+						{#if currentResources.length > 0}
+							<Breadcrumb.Root>
+								{#each currentResources as resource, idx}
+									<Breadcrumb.List>
+										{#if idx > 0}
+											<Breadcrumb.Separator class="hidden md:block" />
+										{/if}
+										<Breadcrumb.Item class="hidden md:block">
+											<Breadcrumb.Link href="#" class="capitalize">{resource}</Breadcrumb.Link>
+										</Breadcrumb.Item>
+									</Breadcrumb.List>
+								{/each}
+							</Breadcrumb.Root>
+						{/if}
 					</div>
 				</header>
 				<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
