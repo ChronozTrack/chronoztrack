@@ -18,6 +18,7 @@
       "Selemondev.vscode-shadcn-svelte"
       "svelte.svelte-vscode"
       "bradlc.vscode-tailwindcss"
+      "vscodevim"
     ];
     # Enable previews
     previews = {

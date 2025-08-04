@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '/src/app.css';
 	import type { LayoutProps } from './$types';
-	import * as Sidebar from '$lib/components/ui/sidebar/index';
+	import * as Sidebar from '$ui/sidebar/index';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index';
 	import { Separator } from '$lib/components/ui/separator/index';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
@@ -14,10 +14,10 @@
 	const permissions = new Set(Object.keys(data.user?.permissions ?? {}));
 	const userRoutes = APP_PAGES.filter((route) => permissions.has(route.resource));
 	const settingRoutes = SETTING_PAGES.filter((route) => permissions.has(route.resource));
-	const currentRoute = [...userRoutes, ...settingRoutes].find(
-		(route) => route.href === page.url.pathname
+	const currentRoute = $derived(
+		[...userRoutes, ...settingRoutes].find((route) => route.href === page.url.pathname)
 	);
-	const currentResources = currentRoute?.resource?.split('.') ?? [];
+	const currentResources = $derived(currentRoute?.resource?.split('.') ?? ['profile']);
 </script>
 
 {#if data.user}
@@ -34,25 +34,25 @@
 						<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
 						{#if currentResources.length > 0}
 							<Breadcrumb.Root>
-								{#each currentResources as resource, idx}
-									<Breadcrumb.List>
+								<Breadcrumb.List>
+									{#each currentResources as resource, idx}
 										{#if idx > 0}
 											<Breadcrumb.Separator class="hidden md:block" />
 										{/if}
 										<Breadcrumb.Item class="hidden md:block">
-											<Breadcrumb.Link href="#" class="capitalize">{resource}</Breadcrumb.Link>
+											<Breadcrumb.Page class="capitalize">{resource}</Breadcrumb.Page>
 										</Breadcrumb.Item>
-									</Breadcrumb.List>
-								{/each}
+									{/each}
+								</Breadcrumb.List>
 							</Breadcrumb.Root>
 						{/if}
 					</div>
 				</header>
-				<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
-					<div class="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
+				<section class="mx-4 w-full">
+					<div class="w-full rounded-lg bg-muted/50 p-4 shadow-md">
 						{@render children?.()}
 					</div>
-				</div>
+				</section>
 			</Sidebar.Inset>
 		</main>
 	</Sidebar.Provider>

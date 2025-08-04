@@ -9,12 +9,12 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		csrf: {
-			// checkOrigin: process.env.NODE_ENV === 'development' ? false : true,
-			checkOrigin: false,
+			checkOrigin: process.env.NODE_ENV === 'development' ? false : true,
 		},
 		alias: {
 			"@db-drizzle": "./drizzle",
-			"@db-drizzle/*": "./drizzle/*"
+			"@db-drizzle/*": "./drizzle/*",
+			"$ui": "./src/lib/components/ui",
 		}
 	},
 };

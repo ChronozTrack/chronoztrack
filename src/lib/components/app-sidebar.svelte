@@ -1,9 +1,8 @@
 <script lang="ts">
 	import type { AppPages, User } from '$lib/app-types';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
-	import * as DropdownMenu from './ui/dropdown-menu/index';
 	import NavUser from '$lib/components/nav-user.svelte';
-	import { ChevronUp, Link } from '@lucide/svelte/icons';
+	import { Link } from '@lucide/svelte/icons';
 
 	interface AppSidebarProps {
 		userRoutes: AppPages[];
@@ -13,6 +12,23 @@
 	let { userRoutes, settingRoutes, user }: AppSidebarProps = $props();
 </script>
 
+{#snippet menuItem(route: AppPages)}
+	<Sidebar.MenuItem>
+		<Sidebar.MenuButton>
+			{#snippet child({ props })}
+				<a href={route.href} {...props}>
+					{#if route.icon}
+						<route.icon />
+					{:else}
+						<Link />
+					{/if}
+					<span>{route.title}</span>
+				</a>
+			{/snippet}
+		</Sidebar.MenuButton>
+	</Sidebar.MenuItem>
+{/snippet}
+
 <Sidebar.Root collapsible="icon">
 	<Sidebar.Content>
 		<Sidebar.Group>
@@ -20,26 +36,25 @@
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					{#each userRoutes as route (route.id)}
-						<Sidebar.MenuItem>
-							<Sidebar.MenuButton>
-								{#snippet child({ props })}
-									<a href={route.href} {...props}>
-										{#if route.icon}
-											<route.icon />
-										{:else}
-											<Link />
-										{/if}
-										<span>{route.title}</span>
-									</a>
-								{/snippet}
-							</Sidebar.MenuButton>
-						</Sidebar.MenuItem>
+						{@render menuItem(route)}
 					{/each}
 				</Sidebar.Menu>
 			</Sidebar.GroupContent>
 		</Sidebar.Group>
+		{#if settingRoutes.length > 0}
+			<Sidebar.Group class="mt-auto">
+				<Sidebar.GroupLabel>Settings</Sidebar.GroupLabel>
+				<Sidebar.GroupContent>
+					<Sidebar.Menu>
+						{#each settingRoutes as route (route.id)}
+							{@render menuItem(route)}
+						{/each}
+					</Sidebar.Menu>
+				</Sidebar.GroupContent>
+			</Sidebar.Group>
+		{/if}
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<NavUser {user}/>
+		<NavUser {user} />
 	</Sidebar.Footer>
 </Sidebar.Root>

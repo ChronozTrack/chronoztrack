@@ -54,4 +54,13 @@
 	"editor.quickSuggestions": {
 		"strings": "on"
 	},
+	"vim.cursorStylePerMode.normal": "block",
+	"vim.cursorStylePerMode.insert": "line",
+	"vim.smartRelativeLine": true,
+	"vim.handleKeys": {
+		"<C-p>": false,
+		"<C-s>": false,
+		"Alt-Shift-f": false,
+		"<C-z>": true
+	},
 }

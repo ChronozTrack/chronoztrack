@@ -1,5 +1,17 @@
 import type { AppPages } from "$lib/app-types";
-import { FileClockIcon, CalendarClockIcon, ClockArrowDownIcon, UsersIcon } from '@lucide/svelte/icons';
+import {
+  FileClockIcon,
+  CalendarClockIcon,
+  ClockArrowDownIcon,
+  UsersIcon,
+  BriefcaseIcon,
+  BuildingIcon,
+  ShieldUserIcon,
+  TimerIcon,
+  FileCogIcon,
+  TagsIcon,
+  ShieldCheckIcon
+} from '@lucide/svelte/icons';
 
 export const OPTIONS_TAB: AppPages<'jobs' | 'departments' | 'roles' | 'time_events'>[] = [
   {
@@ -7,7 +19,7 @@ export const OPTIONS_TAB: AppPages<'jobs' | 'departments' | 'roles' | 'time_even
     id: 'jobs',
     href: '#jobs',
     title: "Jobs",
-    icon: 'work',
+    icon: BriefcaseIcon,
     formId: "formapp-jobs",
     formAction: {
       create: "?/create-jobs",
@@ -19,7 +31,7 @@ export const OPTIONS_TAB: AppPages<'jobs' | 'departments' | 'roles' | 'time_even
     id: 'departments',
     href: "#departments",
     title: 'Departments',
-    icon: 'apartment',
+    icon: BuildingIcon,
     formId: `formapp-departments`,
     formAction: {
       create: `?/create-departments`,
@@ -31,7 +43,7 @@ export const OPTIONS_TAB: AppPages<'jobs' | 'departments' | 'roles' | 'time_even
     id: 'roles',
     href: '#roles',
     title: 'Roles',
-    icon: 'supervisor_account',
+    icon: ShieldCheckIcon,
     formId: `formapp-roles`,
     formAction: {
       create: `?/create-roles`,
@@ -43,7 +55,7 @@ export const OPTIONS_TAB: AppPages<'jobs' | 'departments' | 'roles' | 'time_even
     id: 'time_events',
     href: '#time_events',
     title: "Time Events",
-    icon: 'timer',
+    icon: TimerIcon,
     formId: "formapp-time_events",
     formAction: {
       create: "?/create-time_events",
@@ -57,21 +69,21 @@ export const SETTING_PAGES: AppPages[] = [
     resource: 'settings.options',
     href: "/settings/options",
     title: "Options",
-    icon: 'playlist_add',
+    icon: FileCogIcon,
     id: 'options',
   },
   {
     resource: 'settings.permissions',
     href: "/settings/permissions",
     title: "Permissions",
-    icon: 'admin_panel_settings',
+    icon: ShieldUserIcon,
     id: 'permissions'
   },
   {
     resource: 'settings.alias',
     href: "/settings/alias",
     title: 'Alias',
-    icon: 'domino_mask',
+    icon: TagsIcon,
     id: 'alias',
   },
 ]
