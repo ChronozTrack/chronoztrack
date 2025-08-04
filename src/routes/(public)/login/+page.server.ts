@@ -1,7 +1,7 @@
 import { validateUser } from "$lib/server/controller/auth";
 import { sessionClient, generateSessionToken } from "$lib/server/controller/session";
 import { fail, redirect } from "@sveltejs/kit";
-import type { Actions } from "../$types";
+import type { Actions } from "./$types";
 
 export const actions = {
   default: async ({ fetch, cookies, request }) => {
