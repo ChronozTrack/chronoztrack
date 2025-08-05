@@ -26,6 +26,9 @@ importers:
       drizzle-orm:
         specifier: ^0.40.0
         version: 0.40.1(@cloudflare/workers-types@4.20250726.0)(@libsql/client@0.14.0)(gel@2.1.1)
+      drizzle-zod:
+        specifier: ^0.8.2
+        version: 0.8.2(drizzle-orm@0.40.1(@cloudflare/workers-types@4.20250726.0)(@libsql/client@0.14.0)(gel@2.1.1))(zod@4.0.13)
       mode-watcher:
         specifier: ^1.1.0
         version: 1.1.0(svelte@5.37.0)
@@ -1650,6 +1653,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-zod@0.8.2:
+    resolution: {integrity: sha512-9Do/16OjFFNrQDZgvMtxtDDwKWbFOxUAIwNPKX98SfxrP8H18vhN1BvNXbhelLcdgCE7GEaXDJqBjMExSkhpkA==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: ^3.25.1
 
   enhanced-resolve@5.18.2:
     resolution: {integrity: sha512-6Jw4sE1maoRJo3q8MsSIn2onJFbLTOjY9hlx4DZXmOKvLRd1Ok2kXmAGXaafL2+ijsJZ1ClYbl/pmqr9+k4iUQ==}
@@ -3726,6 +3735,11 @@ snapshots:
       '@cloudflare/workers-types': 4.20250726.0
       '@libsql/client': 0.14.0
       gel: 2.1.1
+
+  drizzle-zod@0.8.2(drizzle-orm@0.40.1(@cloudflare/workers-types@4.20250726.0)(@libsql/client@0.14.0)(gel@2.1.1))(zod@4.0.13):
+    dependencies:
+      drizzle-orm: 0.40.1(@cloudflare/workers-types@4.20250726.0)(@libsql/client@0.14.0)(gel@2.1.1)
+      zod: 4.0.13
 
   enhanced-resolve@5.18.2:
     dependencies:

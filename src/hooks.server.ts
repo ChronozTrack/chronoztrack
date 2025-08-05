@@ -1,4 +1,4 @@
-import { UserAccess } from '$lib/server/controller/permission';
+import { UserAccess } from '$lib/permission';
 import { sessionClient } from '$lib/server/controller/session';
 import { error, redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';

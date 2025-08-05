@@ -51,10 +51,8 @@
 					<ToggleMode />
 				</div>
 			</header>
-			<main class="mx-4 w-auto justify-center">
-				<div class="w-full rounded-lg bg-muted/50 p-4 shadow-md">
-					{@render children?.()}
-				</div>
+			<main class="mx-4 flex justify-center">
+				{@render children?.()}
 			</main>
 		</Sidebar.Inset>
 	</Sidebar.Provider>

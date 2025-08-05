@@ -17,8 +17,8 @@
 			if (result.type === 'error') {
 				console.error(result.error);
 			} else {
-				if (result.type === 'success') {
 				applyAction(result);
+				if (result.type === 'success') {
 					isBusy = false;
 				}
 			}

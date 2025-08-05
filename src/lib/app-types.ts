@@ -1,17 +1,26 @@
 import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRoles, tblSchedules, tblTimeEvents, tblUserDesignation, tblUsers } from "./server/db/schema";
-import {USER_ACTION} from "$lib/defaults/app-defaults"
+import { APP_OPTIONS, USER_ACTION } from "$lib/defaults/app-defaults"
 import { Component } from "@lucide/svelte";
 
-export type TableUsers = typeof tblUsers.$inferSelect;
+export type TableTimeEvents = typeof tblTimeEvents.$inferSelect
 export type TableDepartments = typeof tblDepartments.$inferSelect
 export type TableJobs = typeof tblJobs.$inferSelect;
 export type TableRoles = typeof tblRoles.$inferSelect;
-export type TableTimeEvents = typeof tblTimeEvents.$inferSelect
+export type OptionsBaseTable = TableDepartments | TableJobs | TableRoles | TableTimeEvents;
+export interface SettingsOptions extends Record<string, OptionsBaseTable[]> {
+  jobs: TableJobs[];
+  departments: TableDepartments[];
+  roles: TableRoles[];
+  time_events: TableTimeEvents[];
+};
+
+export type TableUsers = typeof tblUsers.$inferSelect;
 export type TableResources = typeof tblResources.$inferSelect;
 export type TableSchedules = typeof tblSchedules.$inferSelect;
 export type TablePermissions = typeof tblRolePermissions.$inferSelect;
 export type TableDesignations = typeof tblUserDesignation.$inferSelect;
 export type UserAction = typeof USER_ACTION[number];
+
 
 export interface UserPreferences {
   background: string | null;
