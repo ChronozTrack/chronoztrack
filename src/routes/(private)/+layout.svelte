@@ -51,9 +51,9 @@
 					<ToggleMode />
 				</div>
 			</header>
-			<main class="mx-4 flex justify-center">
+			<section class="mx-4 flex justify-center">
 				{@render children?.()}
-			</main>
+			</section>
 		</Sidebar.Inset>
 	</Sidebar.Provider>
 {/if}

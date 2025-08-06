@@ -56,7 +56,6 @@ export class TableOptionsController<T extends TableOptionsType> {
     const validData = this.validateUpdateData(formData);
 
     if (validData.error) {
-      console.error(validData.error)
       return { error: validData.error as ZodError<Partial<T["$inferSelect"]>[]> };
     }
 

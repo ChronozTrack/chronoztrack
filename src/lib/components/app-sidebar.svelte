@@ -29,7 +29,7 @@
 	</Sidebar.MenuItem>
 {/snippet}
 
-<Sidebar.Root collapsible="icon">
+<Sidebar.Root collapsible="icon" variant="inset">
 	<Sidebar.Content>
 		<Sidebar.Group>
 			<Sidebar.GroupLabel>Application</Sidebar.GroupLabel>
