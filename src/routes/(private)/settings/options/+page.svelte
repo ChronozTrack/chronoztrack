@@ -12,7 +12,7 @@
 	$inspect(currentTab);
 </script>
 
-<div class="md:min-w-3xl">
+<div class="w-3xl">
 	<Tabs.Root bind:value={currentTab} class="flex-col justify-start gap-4">
 		<div class="flex items-center justify-between">
 			<Tabs.List>

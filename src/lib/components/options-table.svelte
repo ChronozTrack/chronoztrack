@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { AppPages, OptionsBaseTable } from '$lib/app-types';
-  import {SvelteMap} from 'svelte/reactivity'
+	import { SvelteMap } from 'svelte/reactivity';
 	import * as Table from '$ui/table/index';
+	import * as Select from '$ui/select/index';
 	import { Button } from '$ui/button/index';
 	import { Input } from '$ui/input/index';
 	import { Pencil, TrashIcon } from '@lucide/svelte/icons';
@@ -24,7 +25,7 @@
 		}
 	}
 
-  $inspect(toUpdate)
+	$inspect(toUpdate);
 </script>
 
 <Table.Root>
@@ -44,10 +45,26 @@
 			<Table.Row>
 				<Table.Cell class="text-center">{row.id}</Table.Cell>
 				{#if toUpdate.has(row.id)}
-					<Table.Cell><Input type="text" placeholder={row.code} class="max-w-xs" /></Table.Cell>
-					<Table.Cell>{row.name}</Table.Cell>
-					<Table.Cell>{row.description}</Table.Cell>
-					<Table.Cell class="text-center">{row.active ? 'Yes' : 'No'}</Table.Cell>
+					<Table.Cell>
+						<Input type="text" placeholder={row.code} class="max-w-xs border-none" />
+					</Table.Cell>
+					<Table.Cell>
+						<Input type="text" placeholder={row.name} class="max-w-xs border-none" />
+					</Table.Cell>
+					<Table.Cell>
+						<Input type="text" placeholder={row.description} class="max-w-xs border-none" />
+					</Table.Cell>
+					<Table.Cell class="text-center">
+						<Select.Root type="single" value={row.active ? 'Yes' : 'No'}>
+							<Select.Trigger class="border-none">
+								{row.active ? 'Yes' : 'No'}
+							</Select.Trigger>
+							<Select.Content class="border-none">
+								<Select.Item value="true">Yes</Select.Item>
+								<Select.Item value="false">No</Select.Item>
+							</Select.Content>
+						</Select.Root>
+					</Table.Cell>
 					<Table.Cell class="text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(row.id)}>
 							<TrashIcon />
