@@ -60,7 +60,7 @@
 						<Input type="text" placeholder={editRow.description} class="max-w-xs border-none" />
 					</Table.Cell>
 					<Table.Cell class="text-center">
-						<Switch value={editRow.active} />
+						<Switch bind:checked={editRow.active} />
 					</Table.Cell>
 					<Table.Cell class="text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(row.id)}>
@@ -73,7 +73,11 @@
 					<Table.Cell class="truncate">{row.description}</Table.Cell>
 					<Table.Cell class="text-center">{row.active ? 'Yes' : 'No'}</Table.Cell>
 					<Table.Cell class="text-center">
-						<Button variant="ghost" size="sm" disabled={createdData.size > 0} onclick={() => onEdit(row)}>
+						<Button
+							variant="ghost"
+							size="sm"
+							disabled={createdData.size > 0}
+							onclick={() => onEdit(row)}>
 							<Pencil />
 						</Button>
 					</Table.Cell>
