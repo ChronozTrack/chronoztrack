@@ -1,69 +1,66 @@
 <script lang="ts">
 	import type { AppPages, OptionsBaseTable } from '$lib/app-types';
-	import { SvelteMap } from 'svelte/reactivity';
+	import type { WithTemporaryId } from '$lib/data-utils/data-state.svelte';
 	import * as Table from '$ui/table/index';
 	import * as Select from '$ui/select/index';
 	import { Button } from '$ui/button/index';
+	import { Switch } from '$ui/switch/index';
 	import { Input } from '$ui/input/index';
 	import { Pencil, TrashIcon } from '@lucide/svelte/icons';
+	import { DataState } from '$lib/data-utils/data-state.svelte';
 
 	interface OptionsTableProps {
+		table: string;
 		options: AppPages;
 		data: OptionsBaseTable[];
-	}
-	let { data = [], options }: OptionsTableProps = $props();
-	let toUpdate: Map<number, OptionsBaseTable> = new SvelteMap(new Map());
-	let hasUpdates = $derived(toUpdate.size);
-
-	function onEdit(row: OptionsBaseTable) {
-		toUpdate.set(row.id, structuredClone(row));
+		updatedData: Map<number, OptionsBaseTable>;
+		createdData: Map<string, WithTemporaryId<OptionsBaseTable>>;
+		onDiscard: (id: number) => void;
+		onEdit: (data: OptionsBaseTable) => void;
+		dataState: DataState<OptionsBaseTable>;
 	}
 
-	function onDiscard(id: number) {
-		if (toUpdate.has(id)) {
-			toUpdate.delete(id);
-		}
-	}
-
-	$inspect(toUpdate);
+	let {
+		data = [],
+		options,
+		updatedData,
+		createdData,
+		onDiscard,
+		onEdit,
+		dataState,
+		table
+	}: OptionsTableProps = $props();
 </script>
 
 <Table.Root>
 	<Table.Caption>List of {options.title} option.</Table.Caption>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head class="text-center">Id</Table.Head>
-			<Table.Head>Code</Table.Head>
-			<Table.Head>Name</Table.Head>
-			<Table.Head>Description</Table.Head>
-			<Table.Head class="text-center">Active</Table.Head>
-			<Table.Head class="text-center">Action</Table.Head>
+			<Table.Head class="w-1/10 text-center">Id</Table.Head>
+			<Table.Head class="w-2/12">Code</Table.Head>
+			<Table.Head class="w-3/12">Name</Table.Head>
+			<Table.Head class="truncate">Description</Table.Head>
+			<Table.Head class="w-1/10 text-center">Active</Table.Head>
+			<Table.Head class="w-1/10 text-center">Action</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
 		{#each data as row}
+			{@const editRow = updatedData.get(row.id)}
 			<Table.Row>
 				<Table.Cell class="text-center">{row.id}</Table.Cell>
-				{#if toUpdate.has(row.id)}
+				{#if dataState.table === table && editRow}
 					<Table.Cell>
-						<Input type="text" placeholder={row.code} class="max-w-xs border-none" />
+						<Input type="text" placeholder={editRow.code} class="max-w-xs border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" placeholder={row.name} class="max-w-xs border-none" />
+						<Input type="text" placeholder={editRow.name} class="max-w-xs border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" placeholder={row.description} class="max-w-xs border-none" />
+						<Input type="text" placeholder={editRow.description} class="max-w-xs border-none" />
 					</Table.Cell>
 					<Table.Cell class="text-center">
-						<Select.Root type="single" value={row.active ? 'Yes' : 'No'}>
-							<Select.Trigger class="border-none">
-								{row.active ? 'Yes' : 'No'}
-							</Select.Trigger>
-							<Select.Content class="border-none">
-								<Select.Item value="true">Yes</Select.Item>
-								<Select.Item value="false">No</Select.Item>
-							</Select.Content>
-						</Select.Root>
+						<Switch value={editRow.active} />
 					</Table.Cell>
 					<Table.Cell class="text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(row.id)}>
@@ -73,10 +70,10 @@
 				{:else}
 					<Table.Cell>{row.code}</Table.Cell>
 					<Table.Cell>{row.name}</Table.Cell>
-					<Table.Cell>{row.description}</Table.Cell>
+					<Table.Cell class="truncate">{row.description}</Table.Cell>
 					<Table.Cell class="text-center">{row.active ? 'Yes' : 'No'}</Table.Cell>
 					<Table.Cell class="text-center">
-						<Button variant="ghost" size="sm" onclick={() => onEdit(row)}>
+						<Button variant="ghost" size="sm" disabled={createdData.size > 0} onclick={() => onEdit(row)}>
 							<Pencil />
 						</Button>
 					</Table.Cell>

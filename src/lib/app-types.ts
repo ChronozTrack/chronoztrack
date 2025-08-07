@@ -1,5 +1,5 @@
 import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRoles, tblSchedules, tblTimeEvents, tblUserDesignation, tblUsers } from "./server/db/schema";
-import { APP_OPTIONS, USER_ACTION } from "$lib/defaults/app-defaults"
+import { APP_OPTIONS, APP_TABLES, USER_ACTION } from "$lib/defaults/app-defaults"
 import { Component } from "@lucide/svelte";
 
 export type TableTimeEvents = typeof tblTimeEvents.$inferSelect
@@ -20,7 +20,7 @@ export type TableSchedules = typeof tblSchedules.$inferSelect;
 export type TablePermissions = typeof tblRolePermissions.$inferSelect;
 export type TableDesignations = typeof tblUserDesignation.$inferSelect;
 export type UserAction = typeof USER_ACTION[number];
-
+export type AppTableType = typeof APP_TABLES[number];
 
 export interface UserPreferences {
   background: string | null;
