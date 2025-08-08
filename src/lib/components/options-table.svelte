@@ -1,31 +1,27 @@
 <script lang="ts">
 	import type { AppPages, OptionsBaseTable } from '$lib/app-types';
-	import type { WithTemporaryId } from '$lib/data-utils/data-state.svelte';
 	import * as Table from '$ui/table/index';
-	import * as Select from '$ui/select/index';
 	import { Button } from '$ui/button/index';
 	import { Switch } from '$ui/switch/index';
 	import { Input } from '$ui/input/index';
-	import { Pencil, TrashIcon } from '@lucide/svelte/icons';
+	import { PencilIcon, TrashIcon, PencilOffIcon } from '@lucide/svelte/icons';
 	import { DataState } from '$lib/data-utils/data-state.svelte';
 
 	interface OptionsTableProps {
 		table: string;
 		options: AppPages;
 		data: OptionsBaseTable[];
-		updatedData: Map<number, OptionsBaseTable>;
-		createdData: Map<string, WithTemporaryId<OptionsBaseTable>>;
 		onDiscard: (id: number) => void;
 		onEdit: (data: OptionsBaseTable) => void;
+		onRemove: (id: string) => void;
 		dataState: DataState<OptionsBaseTable>;
 	}
 
 	let {
 		data = [],
 		options,
-		updatedData,
-		createdData,
 		onDiscard,
+		onRemove,
 		onEdit,
 		dataState,
 		table
@@ -45,24 +41,26 @@
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
-		{#each data as row}
-			{@const editRow = updatedData.get(row.id)}
-			<Table.Row>
+		{#each data as row (row.id)}
+			{@const updatedData = dataState.updatedData}
+			{@const idx = updatedData.findIndex((item) => item.id === row.id)}
+			{@const isEdit = idx >= 0 && dataState.table === table}
+			<Table.Row class={[isEdit ? 'bg-primary/10' : '']}>
 				<Table.Cell class="text-center">{row.id}</Table.Cell>
-				{#if dataState.table === table && editRow}
+				{#if isEdit}
 					<Table.Cell>
-						<Input type="text" placeholder={editRow.code} class="max-w-xs border-none" />
+						<Input type="text" bind:value={updatedData[idx].code} class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" placeholder={editRow.name} class="max-w-xs border-none" />
+						<Input type="text" bind:value={updatedData[idx].name} class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" placeholder={editRow.description} class="max-w-xs border-none" />
+						<Input type="text" bind:value={updatedData[idx].description} class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell class="text-center">
-						<Switch bind:checked={editRow.active} />
+						<Switch bind:checked={updatedData[idx].active} />
 					</Table.Cell>
-					<Table.Cell class="text-center">
+					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(row.id)}>
 							<TrashIcon />
 						</Button>
@@ -76,13 +74,42 @@
 						<Button
 							variant="ghost"
 							size="sm"
-							disabled={createdData.size > 0}
+							disabled={dataState.actionState === 'create'}
 							onclick={() => onEdit(row)}>
-							<Pencil />
+							{#if dataState.actionState === 'create'}
+								<PencilOffIcon />
+							{:else}
+								<PencilIcon />
+							{/if}
 						</Button>
 					</Table.Cell>
 				{/if}
 			</Table.Row>
 		{/each}
+
+		{#if dataState.actionState === 'create'}
+			{#each dataState.createdData as newRow (newRow.id)}
+				<Table.Row class="bg-primary/10">
+					<Table.Cell class="text-center">-</Table.Cell>
+					<Table.Cell>
+						<Input type="text" placeholder="code" bind:value={newRow.code} class="h-8 border-none" required/>
+					</Table.Cell>
+					<Table.Cell>
+						<Input type="text" placeholder="name" bind:value={newRow.name} class="h-8 border-none" required/>
+					</Table.Cell>
+					<Table.Cell>
+						<Input type="text" placeholder="description" bind:value={newRow.description} class="h-8 border-none" />
+					</Table.Cell>
+					<Table.Cell class="text-center">
+						<Switch bind:checked={newRow.active} />
+					</Table.Cell>
+					<Table.Cell class="items-center text-center">
+						<Button variant="ghost" size="sm" onclick={() => onRemove(newRow.id)}>
+							<TrashIcon />
+						</Button>
+					</Table.Cell>
+				</Table.Row>
+			{/each}
+		{/if}
 	</Table.Body>
 </Table.Root>

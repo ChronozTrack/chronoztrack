@@ -1,13 +1,17 @@
-import { SvelteMap } from "svelte/reactivity";
 import { customId } from "$lib/utils"
+import type { UserAction } from "$lib/app-types";
 
 export type WithTemporaryId<T> = Omit<T, 'id'> & { id: string };
 
+/**
+ * User actions state should only be one at a time, ['create','update','read','delete?']
+ */
 export class DataState<T extends { id: number }> {
-  #createdData: Map<string, WithTemporaryId<T>> = new SvelteMap();
-  #updatedData: Map<number, T> = new SvelteMap();
+  #createdData: WithTemporaryId<T>[] = $state([]);
+  #updatedData: T[] = $state([]);
   #table: string = $state("");
   #defaultValues: Omit<T, 'id'>;
+  #actionState: UserAction = $state('read')
 
   constructor(table: unknown, defaultValues: Omit<T, 'id'>) {
     this.#table = String(table);
@@ -27,7 +31,11 @@ export class DataState<T extends { id: number }> {
   }
 
   get hasChanges(){
-    return (this.#createdData.size || this.#updatedData.size) > 0;
+    return (this.#createdData.length || this.#updatedData.length) > 0;
+  }
+
+  get actionState(){
+    return this.#actionState;
   }
 
   set table(value: unknown) {
@@ -35,31 +43,54 @@ export class DataState<T extends { id: number }> {
   }
 
   public addData() {
+    if(this.#updatedData.length){
+      this.discardChanges();
+    }
+
     const id = customId();
     const data = structuredClone(this.#defaultValues)
-    this.#createdData.set(id, { id, ...data });
+    this.#createdData.push({ id, ...data });
+    this.#setActionState();
   }
 
   public editData(data: T) {
-    this.#updatedData.set(data.id, structuredClone(data));
+    if(this.#createdData.length){
+      this.discardChanges();
+    }
+
+    this.#updatedData.push(structuredClone(data));
+    this.#setActionState();
   }
 
   public cancelEdit(id: number) {
-    this.#updatedData.delete(id);
+    this.#updatedData = this.#updatedData.filter((item) => item.id !== id);
+    this.#setActionState();
   }
 
   public removeNewData(id: string) {
-    this.#createdData.delete(id)
+    this.#createdData = this.#createdData.filter((item) => item.id !== id)
+    this.#setActionState();
   }
 
   public discardChanges(){
-    if(this.#createdData.size){
-      this.#createdData.clear();
+    if(this.#createdData.length){
+      this.#createdData = [];
     }
-    if(this.#updatedData.size){
-      this.#updatedData.clear();
+    if(this.#updatedData.length){
+      this.#updatedData = [];
     }
 
     this.#table = "";
+    this.#setActionState();
+  }
+
+  #setActionState(){
+    if(this.#createdData.length && !this.#updatedData.length){
+      this.#actionState = 'create';
+    }else if(this.#updatedData.length && !this.#createdData.length){
+      this.#actionState = 'update';
+    }else {
+      this.#actionState = 'read';
+    }
   }
 }
