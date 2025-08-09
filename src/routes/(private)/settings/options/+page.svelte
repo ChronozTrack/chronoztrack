@@ -2,8 +2,9 @@
 	import type { PageProps } from './$types';
 	import type { OptionsBaseTable } from '$lib/app-types';
 	import * as Tabs from '$ui/tabs/index';
-	import { Button } from '$ui/button/index';
+	import { Button, buttonVariants } from '$ui/button/index';
 	import { Badge } from '$ui/badge/index';
+	import * as Dialog from '$ui/dialog/index';
 	import OptionsTable from '$lib/components/options-table.svelte';
 	import { PlusIcon, SaveIcon, TrashIcon } from '@lucide/svelte/icons';
 	import { OPTIONS_TAB } from '$lib/defaults/menus';
@@ -46,6 +47,8 @@
 				return [];
 		}
 	});
+
+	let dialog: HTMLDialogElement;
 
 	function onEdit(data: OptionsBaseTable) {
 		dataState.table = currentTab;
@@ -97,7 +100,11 @@
 			</Tabs.List>
 
 			<div class="flex items-center gap-2">
-				<Button variant="outline" size="sm" disabled={!dataState.hasChanges} type="submit" form="form-options"
+				<Button
+					variant="outline"
+					size="sm"
+					disabled={!dataState.hasChanges}
+					onclick={() => dialog.showModal()}
 					><SaveIcon /><span class="hidden md:inline">Save</span>
 					{#if dataState.hasChanges}
 						<Badge
