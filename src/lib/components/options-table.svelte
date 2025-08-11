@@ -52,13 +52,25 @@
 				{#if isEdit}
 					<input type="hidden" name={inputName('id')} value={row.id} hidden />
 					<Table.Cell>
-						<Input name={inputName('code')} type="text" bind:value={updatedData[idx].code} class="h-8 border-none" />
+						<Input
+							name={inputName('code')}
+							type="text"
+							bind:value={updatedData[idx].code}
+							class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input name={inputName('name')} type="text" bind:value={updatedData[idx].name} class="h-8 border-none" />
+						<Input
+							name={inputName('name')}
+							type="text"
+							bind:value={updatedData[idx].name}
+							class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input name={inputName('description')} type="text" bind:value={updatedData[idx].description} class="h-8 border-none" />
+						<Input
+							name={inputName('description')}
+							type="text"
+							bind:value={updatedData[idx].description}
+							class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell class="text-center">
 						<SwitchInput name={inputName('active')} bind:checked={updatedData[idx].active} />
@@ -91,20 +103,39 @@
 		{/each}
 
 		{#if dataState.actionState === 'create'}
-			{#each dataState.createdData as newRow (newRow.id)}
+			{#each dataState.createdData as newRow, idx (newRow.id)}
+				{@const inputName = (prefix: string) => `${table}[${idx}][${prefix}]`}
 				<Table.Row class="bg-primary/10">
+					<input type="hidden" name={inputName('id')} value={newRow.id} />
 					<Table.Cell class="text-center">-</Table.Cell>
 					<Table.Cell>
-						<Input type="text" placeholder="code" bind:value={newRow.code} class="h-8 border-none" required/>
+						<Input
+							name={inputName('code')}
+							type="text"
+							placeholder="code"
+							bind:value={newRow.code}
+							class="h-8 border-none"
+							required />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" placeholder="name" bind:value={newRow.name} class="h-8 border-none" required/>
+						<Input
+							name={inputName('name')}
+							type="text"
+							placeholder="name"
+							bind:value={newRow.name}
+							class="h-8 border-none"
+							required />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" placeholder="description" bind:value={newRow.description} class="h-8 border-none" />
+						<Input
+							name={inputName('description')}
+							type="text"
+							placeholder="description"
+							bind:value={newRow.description}
+							class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell class="text-center">
-						<Switch bind:checked={newRow.active} />
+						<SwitchInput name={inputName('active')} bind:checked={newRow.active} />
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onRemove(newRow.id)}>

@@ -34,12 +34,11 @@
 	let userOptions = $derived(OPTIONS_TAB.filter((opt) => data.appOptions?.[opt.id].length > 0));
 	let currentTab = $derived(String(userOptions[0]?.id));
 	let formAction = $derived.by(() => {
-		const table = dataState.table;
 		switch (dataState.actionState) {
 			case 'create':
-				return `?/create-${table}`;
+				return `?/create`;
 			case 'update':
-				return `?/update-${table}`;
+				return `?/update`;
 			default:
 				return '';
 		}
@@ -96,17 +95,6 @@
 </script>
 
 <DialogConfirm bind:open={showDialog} {onConfirm} description={dialogMessage} />
-<!-- {#if formInputs.length && formAction}
-	<form hidden action={formAction} method="POST" id="form-options" bind:this={form}>
-		{#each formInputs as data (data.id)}
-			{@const inputName = (prefix: string) => `${prefix}_${data.id}`}
-			<input type="hidden" name={inputName('code')} value={data.code} />
-			<input type="hidden" name={inputName('name')} value={data.name} />
-			<input type="hidden" name={inputName('description')} value={data.description} />
-			<input type="hidden" name={inputName('active')} value={data.active ? '1' : ''} />
-		{/each}
-	</form>
-{/if} -->
 
 <div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
 	<Tabs.Root bind:value={currentTab} class="flex-col justify-start gap-4">
@@ -152,24 +140,23 @@
 				</Button>
 			</div>
 		</div>
-		{#each userOptions as opt}
-			{#key currentTab}
-			
-			<Tabs.Content value={opt.id} class="relative flex flex-col overflow-auto">
-				<div class="overflow-hidden rounded-lg border p-2">
-					<form method="POST" id="form-options" bind:this={form}>
-						<OptionsTable
-						data={data.appOptions[opt.id]}
-						table={opt.id}
-						options={opt}
-						{onEdit}
-						{onDiscard}
-						{onRemove}
-						{dataState} />
-					</form>
-					</div>
-				</Tabs.Content>
-			{/key}
-		{/each}
+		<form method="POST" id="form-options" bind:this={form} action={formAction}>
+			{#each userOptions as opt}
+				{#key currentTab}
+					<Tabs.Content value={opt.id} class="relative flex flex-col overflow-auto">
+						<div class="overflow-hidden rounded-lg border p-2">
+							<OptionsTable
+								data={data.appOptions[opt.id]}
+								table={opt.id}
+								options={opt}
+								{onEdit}
+								{onDiscard}
+								{onRemove}
+								{dataState} />
+						</div>
+					</Tabs.Content>
+				{/key}
+			{/each}
+		</form>
 	</Tabs.Root>
 </div>
