@@ -10,7 +10,7 @@ export const load = (async ({ locals }) => {
 }) satisfies PageServerLoad;
 
 export const actions = {
-  "create-jobs": async({request}) => {
+  default: async({request}) => {
     const formApp = await request.formData();
     console.log(formApp)
     return {}

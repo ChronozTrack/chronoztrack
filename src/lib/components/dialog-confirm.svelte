@@ -5,23 +5,29 @@
 
 	type DialogProps = {
 		open: boolean;
-		description: string;
-		title: string;
-		action: UserAction;
+		description?: string;
+		title?: string;
+		onConfirm: () => void;
 	};
 
-	let { open = $bindable(false), description, title, action, ...restProps }: DialogProps = $props();
+	let {
+		open = $bindable(false),
+		description = 'Are you sure you want to proceed?',
+		title = 'Warning!',
+		onConfirm,
+		...restProps
+	}: DialogProps = $props();
 </script>
 
 <AlertDialog.Root bind:open {...restProps}>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>{title}</AlertDialog.Title>
+			<AlertDialog.Title class="capitalized">{title}</AlertDialog.Title>
 			<AlertDialog.Description>{description}</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel class={buttonVariants({ size: 'sm' })}>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action class={buttonVariants({ size: 'sm' })}>Continue</AlertDialog.Action>
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={onConfirm}>Continue</AlertDialog.Action>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>

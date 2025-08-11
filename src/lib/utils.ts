@@ -21,6 +21,37 @@ export function pathnameToDots(pathname: string): string{
     .join('.');
 };
 
+export function formDataToNestedObject<T extends Record<string, any>>(formData: FormData): T {
+	const result: Record<string, any> = {};
+
+	for (const [rawKey, value] of formData.entries()) {
+		// Example: "people[0][address][city]" → ["people", "0", "address", "city"]
+		const keys = rawKey.replace(/\]/g, '').split('[');
+
+		let current = result;
+		for (let i = 0; i < keys.length; i++) {
+			const key = keys[i];
+
+			// Last key → assign value
+			if (i === keys.length - 1) {
+				current[key] = value.toString();
+			} else {
+				const nextKey = keys[i + 1];
+				const isArrayIndex = !isNaN(Number(nextKey));
+
+				if (!current[key]) {
+					current[key] = isArrayIndex ? [] : {};
+				}
+
+				current = current[key];
+			}
+		}
+	}
+
+	return result as T;
+}
+
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, "child"> : T;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -75,3 +75,4 @@ interface FormAppPage<T = string> extends BaseAppPage<T> {
 }
 
 export type AppPages<T = string> = BaseAppPage<T> | FormAppPage<T>;
+export type DialogAction = 'save' | 'clear' | 'delete' | 'cancel'

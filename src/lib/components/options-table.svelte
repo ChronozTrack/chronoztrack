@@ -6,6 +6,7 @@
 	import { Input } from '$ui/input/index';
 	import { PencilIcon, TrashIcon, PencilOffIcon } from '@lucide/svelte/icons';
 	import { DataState } from '$lib/data-utils/data-state.svelte';
+	import SwitchInput from '$lib/components/switch-input.svelte';
 
 	interface OptionsTableProps {
 		table: string;
@@ -45,20 +46,22 @@
 			{@const updatedData = dataState.updatedData}
 			{@const idx = updatedData.findIndex((item) => item.id === row.id)}
 			{@const isEdit = idx >= 0 && dataState.table === table}
+			{@const inputName = (prefix: string) => `${table}[${idx}][${prefix}]`}
 			<Table.Row class={[isEdit ? 'bg-primary/10' : '']}>
 				<Table.Cell class="text-center">{row.id}</Table.Cell>
 				{#if isEdit}
+					<input type="hidden" name={inputName('id')} value={row.id} hidden />
 					<Table.Cell>
-						<Input type="text" bind:value={updatedData[idx].code} class="h-8 border-none" />
+						<Input name={inputName('code')} type="text" bind:value={updatedData[idx].code} class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" bind:value={updatedData[idx].name} class="h-8 border-none" />
+						<Input name={inputName('name')} type="text" bind:value={updatedData[idx].name} class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell>
-						<Input type="text" bind:value={updatedData[idx].description} class="h-8 border-none" />
+						<Input name={inputName('description')} type="text" bind:value={updatedData[idx].description} class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell class="text-center">
-						<Switch bind:checked={updatedData[idx].active} />
+						<SwitchInput name={inputName('active')} bind:checked={updatedData[idx].active} />
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(row.id)}>
