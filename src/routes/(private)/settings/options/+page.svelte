@@ -1,15 +1,20 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import type { OptionsBaseTable, DialogAction } from '$lib/app-types';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	import * as Tabs from '$ui/tabs/index';
 	import { Button } from '$ui/button/index';
 	import { Badge } from '$ui/badge/index';
 	import OptionsTable from '$lib/components/options-table.svelte';
 	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
-	import { PlusIcon, SaveIcon, TrashIcon } from '@lucide/svelte/icons';
+	import { PlusIcon, SaveIcon, TrashIcon, Loader2Icon } from '@lucide/svelte/icons';
 	import { OPTIONS_TAB } from '$lib/defaults/menus';
 	import { DIALOG_MESSAGES } from '$lib/defaults/app-defaults';
 	import { DataState } from '$lib/data-utils/data-state.svelte';
+	import { slide } from 'svelte/transition';
+	import { enhance } from '$app/forms';
+	import { tick } from 'svelte';
+	import { trusted } from 'svelte/legacy';
 
 	// svelte-ignore non_reactive_update
 	let { data }: PageProps = $props();
@@ -22,17 +27,15 @@
 	});
 
 	// svelte-ignore non_reactive_update
+	let isBusy = $state(false);
 	let form: HTMLFormElement;
 	let pendingAction: DialogAction | null = $state(null);
 	let showDialog = $state(false);
-	let dialogMessage = $derived(
-		pendingAction
-			? (DIALOG_MESSAGES?.['settings.options']?.[pendingAction] ??
-					'Are you sure you want to proceed?')
-			: ''
-	);
+	let dialogAction: string = $state('Continue');
+	let dialogDescription: string = $state('Are you sure you want to proceed?');
+
 	let userOptions = $derived(OPTIONS_TAB.filter((opt) => data.appOptions?.[opt.id].length > 0));
-	let currentTab = $derived(String(userOptions[0]?.id));
+	let activeTab = $derived(String(userOptions[0]?.id));
 	let formAction = $derived.by(() => {
 		switch (dataState.actionState) {
 			case 'create':
@@ -44,28 +47,13 @@
 		}
 	});
 
-	let formInputs = $derived.by(() => {
-		if (!dataState.hasChanges) {
-			return [];
-		}
-
-		switch (dataState.actionState) {
-			case 'create':
-				return dataState.createdData;
-			case 'update':
-				return dataState.updatedData;
-			default:
-				return [];
-		}
-	});
-
 	function onEdit(data: OptionsBaseTable) {
-		dataState.table = currentTab;
+		dataState.table = activeTab;
 		dataState.editData(data);
 	}
 
 	function onAdd() {
-		dataState.table = currentTab;
+		dataState.table = activeTab;
 		dataState.addData();
 	}
 
@@ -79,11 +67,14 @@
 
 	function onPendingAction(action: DialogAction) {
 		pendingAction = action;
+		dialogDescription = DIALOG_MESSAGES['settings.options']?.[action] ?? dialogDescription;
+		dialogAction = String(action); //
 		showDialog = true;
 	}
 
-	function onConfirm() {
+	async function onConfirm() {
 		showDialog = false;
+		await tick();
 		if (pendingAction === 'save') {
 			form.requestSubmit();
 		} else if (pendingAction === 'clear') {
@@ -92,17 +83,34 @@
 
 		pendingAction = null;
 	}
+
+	const formSubmission: SubmitFunction = async () => {
+		isBusy = true;
+		return async ({ result, update }) => {
+			setTimeout(() => {
+				isBusy = false;
+			}, 5000);
+			update({
+				reset: false,
+				invalidateAll: false
+			});
+		};
+	};
 </script>
 
-<DialogConfirm bind:open={showDialog} {onConfirm} description={dialogMessage} />
+<DialogConfirm
+	bind:open={showDialog}
+	{onConfirm}
+	description={dialogDescription}
+	action={dialogAction} />
 
 <div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
-	<Tabs.Root bind:value={currentTab} class="flex-col justify-start gap-4">
+	<Tabs.Root bind:value={activeTab} class="flex-col justify-start gap-4">
 		<div class="flex items-center justify-between">
 			<Tabs.List>
 				{#each userOptions as tab}
 					{#if data.appOptions[tab.id].length > 0}
-						<Tabs.Trigger value={tab.id} disabled={dataState.hasChanges && tab.id !== currentTab}
+						<Tabs.Trigger value={tab.id} disabled={dataState.hasChanges && tab.id !== activeTab}
 							><tab.icon /><span>{tab.title}</span></Tabs.Trigger>
 					{/if}
 				{/each}
@@ -112,9 +120,14 @@
 				<Button
 					variant="outline"
 					size="sm"
-					disabled={!dataState.hasChanges}
-					onclick={() => onPendingAction('save')}
-					><SaveIcon /><span class="hidden md:inline">Save</span>
+					disabled={!dataState.hasChanges || isBusy}
+					onclick={() => onPendingAction('save')}>
+					{#if isBusy}
+						<Loader2Icon class="animate-spin" />
+					{:else}
+						<SaveIcon />
+					{/if}
+					<span class="hidden md:inline">Save</span>
 					{#if dataState.hasChanges}
 						<Badge
 							variant="destructive"
@@ -126,37 +139,54 @@
 				<Button
 					variant="outline"
 					size="sm"
-					disabled={!dataState.hasChanges}
-					onclick={() => onPendingAction('clear')}
-					><TrashIcon /><span class="hidden md:inline">Clear</span>
+					disabled={!dataState.hasChanges || isBusy}
+					onclick={() => onPendingAction('clear')}>
+					{#if isBusy}
+						<Loader2Icon class="animate-spin" />
+					{:else}
+						<TrashIcon />
+					{/if}
+					<span class="hidden md:inline">Clear</span>
 				</Button>
 
 				<Button
 					variant="outline"
 					size="sm"
-					disabled={dataState.updatedData.length > 0}
-					onclick={onAdd}
-					><PlusIcon /><span class="hidden md:inline">Add</span>
+					disabled={dataState.updatedData.length > 0 || isBusy}
+					onclick={onAdd}>
+					{#if isBusy}
+						<Loader2Icon class="animate-spin" />
+					{:else}
+						<PlusIcon />
+					{/if}
+					<span class="hidden md:inline">Add</span>
 				</Button>
 			</div>
 		</div>
-		<form method="POST" id="form-options" bind:this={form} action={formAction}>
-			{#each userOptions as opt}
-				{#key currentTab}
-					<Tabs.Content value={opt.id} class="relative flex flex-col overflow-auto">
-						<div class="overflow-hidden rounded-lg border p-2">
-							<OptionsTable
-								data={data.appOptions[opt.id]}
-								table={opt.id}
-								options={opt}
-								{onEdit}
-								{onDiscard}
-								{onRemove}
-								{dataState} />
-						</div>
-					</Tabs.Content>
-				{/key}
-			{/each}
-		</form>
+		{#each userOptions as opt}
+			<Tabs.Content value={opt.id} class="relative flex flex-col overflow-auto">
+				{#if activeTab === opt.id}
+					<div class="overflow-hidden rounded-lg border p-2" transition:slide>
+						<form
+							method="POST"
+							id="form-options"
+							bind:this={form}
+							action={formAction}
+							use:enhance={formSubmission}>
+							<fieldset disabled={isBusy}>
+								<OptionsTable
+									data={data.appOptions[opt.id]}
+									table={opt.id}
+									options={opt}
+									{onEdit}
+									{onDiscard}
+									{onRemove}
+									{dataState} />
+							</fieldset>
+						</form>
+					</div>
+				{/if}
+			</Tabs.Content>
+		{/each}
 	</Tabs.Root>
 </div>

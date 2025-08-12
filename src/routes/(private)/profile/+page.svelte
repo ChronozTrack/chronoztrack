@@ -1,14 +1,17 @@
 <script lang="ts">
-	import SunIcon from '@lucide/svelte/icons/sun';
-	import MoonIcon from '@lucide/svelte/icons/moon';
+	import { Input } from '$ui/input/index'
+	import {Button} from '$ui/button/index';
 
-	import { toggleMode } from 'mode-watcher';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import type { PageData } from './$types';
+	let ref: HTMLFormElement
 
-	// export let data: PageData;
+	function onSubmit() {
+		ref.requestSubmit();
+	}
 </script>
 
 <section class="flex justify-center">
-	<h1>Profile</h1>
+	<Button onclick={onSubmit}>Submit</Button>
+	<form method="POST" bind:this={ref}>
+		<Input name="name" type="text" required class="h-8 border-none"/>
+	</form>
 </section>

@@ -56,14 +56,16 @@
 							name={inputName('code')}
 							type="text"
 							bind:value={updatedData[idx].code}
-							class="h-8 border-none" />
+							class="h-8 border-none" 
+							required/>
 					</Table.Cell>
 					<Table.Cell>
 						<Input
 							name={inputName('name')}
 							type="text"
 							bind:value={updatedData[idx].name}
-							class="h-8 border-none" />
+							class="h-8 border-none" 
+							required/>
 					</Table.Cell>
 					<Table.Cell>
 						<Input
