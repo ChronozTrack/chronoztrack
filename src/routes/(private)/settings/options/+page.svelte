@@ -10,13 +10,12 @@
 	import { PlusIcon, SaveIcon, TrashIcon, Loader2Icon } from '@lucide/svelte/icons';
 	import { OPTIONS_TAB } from '$lib/defaults/menus';
 	import { DIALOG_MESSAGES } from '$lib/defaults/app-defaults';
-	import { DataState } from '$lib/data-utils/data-state.svelte';
+	import { DataState, AppOptionsData } from '$lib/data-utils';
 	import { slide } from 'svelte/transition';
-	import { enhance } from '$app/forms';
+	import { applyAction, enhance } from '$app/forms';
 	import { tick } from 'svelte';
-	import { trusted } from 'svelte/legacy';
+	import BusyIcon from '$lib/components/busy-icon.svelte';
 
-	// svelte-ignore non_reactive_update
 	let { data }: PageProps = $props();
 	const dataState = new DataState<OptionsBaseTable>(null, {
 		code: '',
@@ -26,16 +25,17 @@
 		locked: true
 	});
 
-	// svelte-ignore non_reactive_update
+	const optionsData = new AppOptionsData(data.appOptions);
+
 	let isBusy = $state(false);
-	let form: HTMLFormElement;
+	let form: HTMLFormElement | undefined = $state();
 	let pendingAction: DialogAction | null = $state(null);
 	let showDialog = $state(false);
 	let dialogAction: string = $state('Continue');
 	let dialogDescription: string = $state('Are you sure you want to proceed?');
 
 	let userOptions = $derived(OPTIONS_TAB.filter((opt) => data.appOptions?.[opt.id].length > 0));
-	let activeTab = $derived(String(userOptions[0]?.id));
+	let activeTab = $derived(userOptions[0]?.id);
 	let formAction = $derived.by(() => {
 		switch (dataState.actionState) {
 			case 'create':
@@ -75,7 +75,7 @@
 	async function onConfirm() {
 		showDialog = false;
 		await tick();
-		if (pendingAction === 'save') {
+		if (pendingAction === 'save' && form) {
 			form.requestSubmit();
 		} else if (pendingAction === 'clear') {
 			dataState.discardChanges();
@@ -86,23 +86,29 @@
 
 	const formSubmission: SubmitFunction = async () => {
 		isBusy = true;
-		return async ({ result, update }) => {
-			setTimeout(() => {
-				isBusy = false;
-			}, 5000);
-			update({
-				reset: false,
-				invalidateAll: false
-			});
+		return async ({ result }) => {
+			if (result.type === 'success' && result.data) {
+				const { rows, error } = result.data;
+				if (error) {
+					console.error(error);
+				} else {
+					optionsData.updateOptions(activeTab, rows);
+					dataState.discardChanges();
+				}
+			} else if (result.type === 'error') {
+				console.error(result.error);
+			}
+			applyAction(result);
+			isBusy = false;
 		};
 	};
 </script>
 
 <DialogConfirm
 	bind:open={showDialog}
-	{onConfirm}
 	description={dialogDescription}
-	action={dialogAction} />
+	action={dialogAction}
+	{onConfirm} />
 
 <div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
 	<Tabs.Root bind:value={activeTab} class="flex-col justify-start gap-4">
@@ -122,11 +128,7 @@
 					size="sm"
 					disabled={!dataState.hasChanges || isBusy}
 					onclick={() => onPendingAction('save')}>
-					{#if isBusy}
-						<Loader2Icon class="animate-spin" />
-					{:else}
-						<SaveIcon />
-					{/if}
+					<BusyIcon {isBusy}><SaveIcon /></BusyIcon>
 					<span class="hidden md:inline">Save</span>
 					{#if dataState.hasChanges}
 						<Badge
@@ -141,11 +143,7 @@
 					size="sm"
 					disabled={!dataState.hasChanges || isBusy}
 					onclick={() => onPendingAction('clear')}>
-					{#if isBusy}
-						<Loader2Icon class="animate-spin" />
-					{:else}
-						<TrashIcon />
-					{/if}
+					<BusyIcon {isBusy}><TrashIcon /></BusyIcon>
 					<span class="hidden md:inline">Clear</span>
 				</Button>
 
@@ -154,11 +152,7 @@
 					size="sm"
 					disabled={dataState.updatedData.length > 0 || isBusy}
 					onclick={onAdd}>
-					{#if isBusy}
-						<Loader2Icon class="animate-spin" />
-					{:else}
-						<PlusIcon />
-					{/if}
+					<BusyIcon {isBusy}><PlusIcon /></BusyIcon>
 					<span class="hidden md:inline">Add</span>
 				</Button>
 			</div>
@@ -175,7 +169,7 @@
 							use:enhance={formSubmission}>
 							<fieldset disabled={isBusy}>
 								<OptionsTable
-									data={data.appOptions[opt.id]}
+									data={optionsData.table(opt.id)}
 									table={opt.id}
 									options={opt}
 									{onEdit}

@@ -58,7 +58,7 @@ export class DataState<T extends { id: number }> {
       this.discardChanges();
     }
 
-    this.#updatedData.push(structuredClone(data));
+    this.#updatedData.push(structuredClone($state.snapshot<unknown>(data)));
     this.#setActionState();
   }
 

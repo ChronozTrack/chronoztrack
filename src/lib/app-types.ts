@@ -21,6 +21,7 @@ export type TablePermissions = typeof tblRolePermissions.$inferSelect;
 export type TableDesignations = typeof tblUserDesignation.$inferSelect;
 export type UserAction = typeof USER_ACTION[number];
 export type AppTableType = typeof APP_TABLES[number];
+export type AppOptionsType = typeof APP_OPTIONS[number];
 
 export interface UserPreferences {
   background: string | null;
