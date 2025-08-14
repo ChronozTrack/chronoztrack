@@ -2,7 +2,6 @@
 	import type { AppPages, OptionsBaseTable } from '$lib/app-types';
 	import * as Table from '$ui/table/index';
 	import { Button } from '$ui/button/index';
-	import { Switch } from '$ui/switch/index';
 	import { Input } from '$ui/input/index';
 	import { PencilIcon, TrashIcon, PencilOffIcon } from '@lucide/svelte/icons';
 	import { DataState } from '$lib/data-utils/data-state.svelte';
@@ -47,7 +46,13 @@
 			{@const idx = updatedData.findIndex((item) => item.id === row.id)}
 			{@const isEdit = idx >= 0 && dataState.table === table}
 			{@const inputName = (prefix: string) => `${table}[${idx}][${prefix}]`}
-			<Table.Row class={[isEdit ? 'bg-primary/10' : '']}>
+			<Table.Row
+				class={[
+					row.locked ? 'text-primary/75' : '',
+					!row.active ? 'text-destructive' : '',
+					isEdit ? 'bg-primary/10' : '',
+					isEdit && !updatedData[idx].active ? 'text-destructive' : ''
+				]}>
 				<Table.Cell class="text-center">{row.id}</Table.Cell>
 				{#if isEdit}
 					<input type="hidden" name={inputName('id')} value={row.id} hidden />
@@ -56,16 +61,16 @@
 							name={inputName('code')}
 							type="text"
 							bind:value={updatedData[idx].code}
-							class="h-8 border-none" 
-							required/>
+							class="h-8 border-none"
+							required />
 					</Table.Cell>
 					<Table.Cell>
 						<Input
 							name={inputName('name')}
 							type="text"
 							bind:value={updatedData[idx].name}
-							class="h-8 border-none" 
-							required/>
+							class="h-8 border-none"
+							required />
 					</Table.Cell>
 					<Table.Cell>
 						<Input
@@ -79,7 +84,7 @@
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(row.id)}>
-							<TrashIcon />
+							<TrashIcon class="text-destructive" />
 						</Button>
 					</Table.Cell>
 				{:else}
@@ -91,9 +96,9 @@
 						<Button
 							variant="ghost"
 							size="sm"
-							disabled={dataState.actionState === 'create'}
+							disabled={dataState.actionState === 'create' || row.locked}
 							onclick={() => onEdit(row)}>
-							{#if dataState.actionState === 'create'}
+							{#if dataState.actionState === 'create' || row.locked}
 								<PencilOffIcon />
 							{:else}
 								<PencilIcon />

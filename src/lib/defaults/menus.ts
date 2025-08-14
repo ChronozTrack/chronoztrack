@@ -1,4 +1,4 @@
-import type { AppPages } from "$lib/app-types";
+import type { AppPages, AppOptionsType } from "$lib/app-types";
 import {
   FileClockIcon,
   CalendarClockIcon,
@@ -13,7 +13,7 @@ import {
   ShieldCheckIcon
 } from '@lucide/svelte/icons';
 
-export const OPTIONS_TAB: AppPages<'jobs' | 'departments' | 'roles' | 'time_events'>[] = [
+export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
   {
     resource: 'settings.options',
     id: 'jobs',

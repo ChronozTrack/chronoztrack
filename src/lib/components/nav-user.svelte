@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import type { User } from '$lib/app-types';
 	import * as Avatar from '$lib/components/ui/avatar/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
@@ -12,9 +11,17 @@
 	interface NavUserProps {
 		user: User;
 	}
-	let { user }: NavUserProps = $props();
-</script>
 
+	let { user }: NavUserProps = $props();
+	let logoutForm: HTMLFormElement | undefined = $state();
+
+	function logout(){
+		if(logoutForm){
+			logoutForm.requestSubmit()
+		}
+	}
+</script>
+<form hidden method="POST" action="/logout" bind:this={logoutForm}></form>
 <Sidebar.Menu>
 	<Sidebar.MenuItem>
 		<DropdownMenu.Root>
@@ -66,7 +73,7 @@
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
-					<DropdownMenu.Item>
+					<DropdownMenu.Item onclick={logout}>
 						<LogOutIcon />
             Log out
 					</DropdownMenu.Item>

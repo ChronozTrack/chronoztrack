@@ -34,7 +34,10 @@ export const route: Handle = async ({ event, resolve }) => {
   }
 
   const userAccess = new UserAccess(event.locals.user)
-
+  if (event.url.pathname === '/logout') {
+    return resolve(event)
+  }
+  
   if (userAccess.canView(event.url)) {
     return resolve(event)
   } else if (userAccess.canView('profile')) {

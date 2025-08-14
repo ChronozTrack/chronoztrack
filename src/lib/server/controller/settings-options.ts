@@ -1,4 +1,4 @@
-import type { SettingsOptions, UserAction } from "$lib/app-types";
+import type { AppOptionsType, SettingsOptions, UserAction } from "$lib/app-types";
 import { APP_OPTIONS } from "$lib/defaults/app-defaults"
 import { db } from "$lib/server/db";
 import { z, ZodError } from "zod";
@@ -10,6 +10,12 @@ import type { UserAccess } from "../../permission";
 type TableOptionsType = typeof tblJobs | typeof tblDepartments | typeof tblTimeEvents | typeof tblRoles;
 type UpdatableFields = Partial<keyof Pick<TableOptionsType, "id" | "active" | "code" | "name" | "description" | "locked">>;
 const { createInsertSchema, createUpdateSchema } = createSchemaFactory({ coerce: true });
+const TABLE_MAPS: Record<typeof APP_OPTIONS[number], TableOptionsType> = {
+  jobs: tblJobs,
+  departments: tblDepartments,
+  roles: tblRoles,
+  time_events: tblTimeEvents
+}
 
 export class TableOptionsController<T extends TableOptionsType> {
   #db = db;
@@ -103,13 +109,6 @@ export class TableOptionsController<T extends TableOptionsType> {
 
 function filterOptionAccess(userAccess: UserAccess) {
   const userOptions = APP_OPTIONS.filter(opt => userAccess.canView(opt));
-  const TABLE_MAPS: Record<typeof APP_OPTIONS[number], TableOptionsType> = {
-    jobs: tblJobs,
-    departments: tblDepartments,
-    roles: tblRoles,
-    time_events: tblTimeEvents
-  }
-
   return {
     userOptions,
     optionsTable: userOptions.map(opt => TABLE_MAPS[opt])
@@ -136,6 +135,16 @@ export async function getAppOptions(userAccess: UserAccess): Promise<SettingsOpt
       console.error(err);
       return optionsValues
     })
+}
+
+export async function postOption(action: UserAction, resource: AppOptionsType, data: Record<string, FormDataEntryValue>[]) {
+  const table = TABLE_MAPS[resource];
+  const controller = new TableOptionsController(table);
+  if (action === 'create') {
+    return await controller.createOptions(data);
+  } else if (action === 'update') {
+    return await controller.updateOptions(data);
+  }
 }
 
 export const clientRoles = new TableOptionsController<typeof tblRoles>(tblRoles);
