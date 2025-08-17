@@ -1,4 +1,4 @@
 import { AppOptionsData } from "./settings-options.svelte";
-import { DataState } from "./data-state.svelte"
+import { DraftState } from "./data-state.svelte"
 
-export { AppOptionsData, DataState }
+export { AppOptionsData, DraftState }

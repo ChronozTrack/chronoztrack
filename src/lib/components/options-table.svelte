@@ -4,17 +4,17 @@
 	import { Button } from '$ui/button/index';
 	import { Input } from '$ui/input/index';
 	import { PencilIcon, TrashIcon, PencilOffIcon } from '@lucide/svelte/icons';
-	import { DataState } from '$lib/data-utils/data-state.svelte';
+	import { DraftState } from '$lib/data-utils/data-state.svelte';
 	import SwitchInput from '$lib/components/switch-input.svelte';
 
 	interface OptionsTableProps {
 		table: string;
 		options: AppPages;
 		data: OptionsBaseTable[];
-		onDiscard: (id: number) => void;
+		onDiscard: (refId: string) => void;
 		onEdit: (data: OptionsBaseTable) => void;
-		onRemove: (id: string) => void;
-		dataState: DataState<OptionsBaseTable>;
+		onRemove: (refId: string) => void;
+		optionsDraft: DraftState<OptionsBaseTable>;
 	}
 
 	let {
@@ -23,7 +23,7 @@
 		onDiscard,
 		onRemove,
 		onEdit,
-		dataState,
+		optionsDraft,
 		table
 	}: OptionsTableProps = $props();
 </script>
@@ -42,16 +42,16 @@
 	</Table.Header>
 	<Table.Body>
 		{#each data as row (row.id)}
-			{@const updatedData = dataState.updatedData}
-			{@const idx = updatedData.findIndex((item) => item.id === row.id)}
-			{@const isEdit = idx >= 0 && dataState.table === table}
+			{@const modifiedEntries = optionsDraft.modifiedEntries}
+			{@const idx = modifiedEntries.findIndex((item) => item.id === row.id)}
+			{@const isEdit = idx >= 0 && optionsDraft.entity === table}
 			{@const inputName = (prefix: string) => `${table}[${idx}][${prefix}]`}
 			<Table.Row
 				class={[
 					row.locked ? 'text-primary/75' : '',
 					!row.active ? 'text-destructive' : '',
 					isEdit ? 'bg-primary/10' : '',
-					isEdit && !updatedData[idx].active ? 'text-destructive' : ''
+					isEdit && !modifiedEntries[idx].active ? 'text-destructive' : ''
 				]}>
 				<Table.Cell class="text-center">{row.id}</Table.Cell>
 				{#if isEdit}
@@ -60,7 +60,7 @@
 						<Input
 							name={inputName('code')}
 							type="text"
-							bind:value={updatedData[idx].code}
+							bind:value={modifiedEntries[idx].code}
 							class="h-8 border-none"
 							required />
 					</Table.Cell>
@@ -68,7 +68,7 @@
 						<Input
 							name={inputName('name')}
 							type="text"
-							bind:value={updatedData[idx].name}
+							bind:value={modifiedEntries[idx].name}
 							class="h-8 border-none"
 							required />
 					</Table.Cell>
@@ -76,14 +76,14 @@
 						<Input
 							name={inputName('description')}
 							type="text"
-							bind:value={updatedData[idx].description}
+							bind:value={modifiedEntries[idx].description}
 							class="h-8 border-none" />
 					</Table.Cell>
 					<Table.Cell class="text-center">
-						<SwitchInput name={inputName('active')} bind:checked={updatedData[idx].active} />
+						<SwitchInput name={inputName('active')} bind:checked={modifiedEntries[idx].active} />
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
-						<Button variant="ghost" size="sm" onclick={() => onDiscard(row.id)}>
+						<Button variant="ghost" size="sm" onclick={() => onDiscard(modifiedEntries[idx].referenceId)}>
 							<TrashIcon class="text-destructive" />
 						</Button>
 					</Table.Cell>
@@ -96,9 +96,9 @@
 						<Button
 							variant="ghost"
 							size="sm"
-							disabled={dataState.actionState === 'create' || row.locked}
+							disabled={optionsDraft.actionState === 'create' || row.locked}
 							onclick={() => onEdit(row)}>
-							{#if dataState.actionState === 'create' || row.locked}
+							{#if optionsDraft.actionState === 'create' || row.locked}
 								<PencilOffIcon />
 							{:else}
 								<PencilIcon />
@@ -109,8 +109,8 @@
 			</Table.Row>
 		{/each}
 
-		{#if dataState.actionState === 'create'}
-			{#each dataState.createdData as newRow, idx (newRow.id)}
+		{#if optionsDraft.actionState === 'create'}
+			{#each optionsDraft.newEntries as newRow, idx (newRow.id)}
 				{@const inputName = (prefix: string) => `${table}[${idx}][${prefix}]`}
 				<Table.Row class="bg-primary/10">
 					<input type="hidden" name={inputName('id')} value={newRow.id} />
@@ -145,7 +145,7 @@
 						<SwitchInput name={inputName('active')} bind:checked={newRow.active} />
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
-						<Button variant="ghost" size="sm" onclick={() => onRemove(newRow.id)}>
+						<Button variant="ghost" size="sm" onclick={() => onRemove(newRow.referenceId)}>
 							<TrashIcon />
 						</Button>
 					</Table.Cell>

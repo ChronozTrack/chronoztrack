@@ -2,29 +2,33 @@
 	import type { PageProps } from './$types';
 	import type { OptionsBaseTable, DialogAction } from '$lib/app-types';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import OptionsTable from '$lib/components/options-table.svelte';
+	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
+	import BusyIcon from '$lib/components/busy-icon.svelte';
 	import * as Tabs from '$ui/tabs/index';
 	import { Button } from '$ui/button/index';
 	import { Badge } from '$ui/badge/index';
 	import { Skeleton } from '$ui/skeleton/index';
-	import OptionsTable from '$lib/components/options-table.svelte';
-	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
 	import { PlusIcon, SaveIcon, TrashIcon } from '@lucide/svelte/icons';
 	import { OPTIONS_TAB } from '$lib/defaults/menus';
 	import { DIALOG_MESSAGES } from '$lib/defaults/app-defaults';
-	import { DataState, AppOptionsData } from '$lib/data-utils';
+	import { DraftState, AppOptionsData } from '$lib/data-utils';
 	import { slide } from 'svelte/transition';
 	import { applyAction, enhance } from '$app/forms';
 	import { tick } from 'svelte';
-	import BusyIcon from '$lib/components/busy-icon.svelte';
 
 	let { data }: PageProps = $props();
-	const dataState = new DataState<OptionsBaseTable>(null, {
-		code: '',
-		name: '',
-		description: '',
-		active: true,
-		locked: true
-	});
+	const optionsDraft = new DraftState<OptionsBaseTable>(
+		'',
+		{ omit: ['id'] },
+		{
+			code: '',
+			name: '',
+			description: '',
+			active: true,
+			locked: true
+		}
+	);
 
 	const optionsData = new AppOptionsData(data.settingsOptions);
 
@@ -35,10 +39,12 @@
 	let dialogAction: string = $state('Continue');
 	let dialogDescription: string = $state('Are you sure you want to proceed?');
 
-	let userOptions = $derived(OPTIONS_TAB.filter((opt) => data.settingsOptions?.[opt.id].length > 0));
+	let userOptions = $derived(
+		OPTIONS_TAB.filter((opt) => data.settingsOptions?.[opt.id].length > 0)
+	);
 	let activeTab = $derived(userOptions[0]?.id);
 	let formAction = $derived.by(() => {
-		switch (dataState.actionState) {
+		switch (optionsDraft.actionState) {
 			case 'create':
 				return `?/create`;
 			case 'update':
@@ -49,21 +55,21 @@
 	});
 
 	function onEdit(data: OptionsBaseTable) {
-		dataState.table = activeTab;
-		dataState.editData(data);
+		optionsDraft.entity = activeTab;
+		optionsDraft.editEntry(data);
 	}
 
 	function onAdd() {
-		dataState.table = activeTab;
-		dataState.addData();
+		optionsDraft.entity = activeTab;
+		optionsDraft.addEntry();
 	}
 
-	function onDiscard(id: number) {
-		dataState.cancelEdit(id);
+	function onDiscard(refId: string) {
+		optionsDraft.cancelUpdate(refId);
 	}
 
-	function onRemove(id: string) {
-		dataState.removeNewData(id);
+	function onRemove(refId: string) {
+		optionsDraft.removeNewEntry(refId);
 	}
 
 	function onPendingAction(action: DialogAction) {
@@ -79,7 +85,7 @@
 		if (pendingAction === 'save' && form) {
 			form.requestSubmit();
 		} else if (pendingAction === 'clear') {
-			dataState.discardChanges();
+			optionsDraft.discardChanges();
 		}
 
 		pendingAction = null;
@@ -94,7 +100,7 @@
 					console.error(error);
 				} else {
 					optionsData.updateOptions(activeTab, rows);
-					dataState.discardChanges();
+					optionsDraft.discardChanges();
 				}
 			} else if (result.type === 'error') {
 				console.error(result.error);
@@ -128,7 +134,9 @@
 				<Tabs.List>
 					{#each userOptions as tab}
 						{#if settingsOptions[tab.id].length > 0}
-							<Tabs.Trigger value={tab.id} disabled={dataState.hasChanges && tab.id !== activeTab}
+							<Tabs.Trigger
+								value={tab.id}
+								disabled={optionsDraft.hasChanges && tab.id !== activeTab}
 								><tab.icon /><span>{tab.title}</span></Tabs.Trigger>
 						{/if}
 					{/each}
@@ -138,15 +146,15 @@
 					<Button
 						variant="outline"
 						size="sm"
-						disabled={!dataState.hasChanges || isBusy}
+						disabled={!optionsDraft.hasChanges || isBusy}
 						onclick={() => onPendingAction('save')}>
 						<BusyIcon {isBusy}><SaveIcon /></BusyIcon>
 						<span class="hidden md:inline">Save</span>
-						{#if dataState.hasChanges}
+						{#if optionsDraft.hasChanges}
 							<Badge
 								variant="destructive"
 								class="h-4 min-w-4 rounded-full px-1 font-mono tabular-nums"
-								>{dataState.updatedData.length || dataState.createdData.length}
+								>{optionsDraft.modifiedEntries.length || optionsDraft.newEntries.length}
 							</Badge>
 						{/if}
 					</Button>
@@ -154,7 +162,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						disabled={!dataState.hasChanges || isBusy}
+						disabled={!optionsDraft.hasChanges || isBusy}
 						onclick={() => onPendingAction('clear')}>
 						<BusyIcon {isBusy}><TrashIcon class="text-destructive" /></BusyIcon>
 						<span class="hidden md:inline">Clear</span>
@@ -163,7 +171,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						disabled={dataState.updatedData.length > 0 || isBusy}
+						disabled={optionsDraft.modifiedEntries.length > 0 || isBusy}
 						onclick={onAdd}>
 						<BusyIcon {isBusy}><PlusIcon /></BusyIcon>
 						<span class="hidden md:inline">Add</span>
@@ -188,7 +196,7 @@
 										{onEdit}
 										{onDiscard}
 										{onRemove}
-										{dataState} />
+										{optionsDraft} />
 								</fieldset>
 							</form>
 						</div>
