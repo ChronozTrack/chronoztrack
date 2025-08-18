@@ -33,7 +33,6 @@ export class RolePermissionController<T extends typeof tblRolePermissions> {
     }
   }
 
-
   public async select(roleId: number) {
     return {
       rows: await db.select({
@@ -45,7 +44,6 @@ export class RolePermissionController<T extends typeof tblRolePermissions> {
         canDelete: this.#tbl.canDelete
       })
         .from(this.#tbl)
-        .leftJoin(tblResources, eq(this.#tbl.resourceId, tblResources.id))
         .where(eq(this.#tbl.roleId, roleId))
     }
   }

@@ -51,15 +51,7 @@ export class DraftState<T extends Record<string, unknown>> {
 	}
 
 	set entity(value: string) {
-		this.entity = value;
-	}
-
-	#hasRequired() {
-		return this.#requiredKeys.length > 0;
-	}
-
-	#hasOmitted() {
-		return this.#omittedKeys.length > 1;
+		this.#entity = value;
 	}
 
 	#setActionState() {
@@ -83,17 +75,6 @@ export class DraftState<T extends Record<string, unknown>> {
 		}
 
 		//match if no required keys
-		return true;
-	}
-
-	#isKeyOmitted(overrides: Partial<T> = {}) {
-		if (this.#omittedKeys.length > 1) {
-			return this.#omittedKeys.some((key) => {
-				return Boolean(overrides[key]);
-			});
-		}
-
-		//match if no omitted keys
 		return true;
 	}
 
@@ -153,18 +134,18 @@ export class DraftState<T extends Record<string, unknown>> {
 		this.#setActionState();
 	}
 
-  public removeNewEntry(referenceId: string){
-    this.#newEntries = this.#newEntries.filter(val => val.referenceId !== referenceId)
-    this.#setActionState();
-  }
+	public discardEntry(referenceId: string){
+		if(this.#actionState === 'create'){
+			this.#newEntries = this.#newEntries.filter(val => val.referenceId !== referenceId)
+		}else if(this.#actionState === 'update'){
+			this.#modifiedEntries = this.#modifiedEntries.filter(val => val.referenceId !== referenceId)
+		}
 
-  public cancelUpdate(referenceId: string){
-    this.#modifiedEntries = this.#modifiedEntries.filter(val => val.referenceId !== referenceId)
-    this.#setActionState();
-  }
-
-	public discardChanges() {
-		this.#forceClearOtherEntries();
+		this.#setActionState
 	}
 
+	public discardAllChanges() {
+		this.#forceClearOtherEntries();
+		this.#setActionState();
+	}
 }

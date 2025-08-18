@@ -5,11 +5,13 @@
 	import OptionsTable from '$lib/components/options-table.svelte';
 	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
 	import BusyIcon from '$lib/components/busy-icon.svelte';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Save from '@lucide/svelte/icons/save';
+	import Trash from '@lucide/svelte/icons/trash';
 	import * as Tabs from '$ui/tabs/index';
 	import { Button } from '$ui/button/index';
 	import { Badge } from '$ui/badge/index';
 	import { Skeleton } from '$ui/skeleton/index';
-	import { PlusIcon, SaveIcon, TrashIcon } from '@lucide/svelte/icons';
 	import { OPTIONS_TAB } from '$lib/defaults/menus';
 	import { DIALOG_MESSAGES } from '$lib/defaults/app-defaults';
 	import { DraftState, AppOptionsData } from '$lib/data-utils';
@@ -65,11 +67,7 @@
 	}
 
 	function onDiscard(refId: string) {
-		optionsDraft.cancelUpdate(refId);
-	}
-
-	function onRemove(refId: string) {
-		optionsDraft.removeNewEntry(refId);
+		optionsDraft.discardEntry(refId);
 	}
 
 	function onPendingAction(action: DialogAction) {
@@ -85,7 +83,7 @@
 		if (pendingAction === 'save' && form) {
 			form.requestSubmit();
 		} else if (pendingAction === 'clear') {
-			optionsDraft.discardChanges();
+			optionsDraft.discardAllChanges();
 		}
 
 		pendingAction = null;
@@ -100,7 +98,7 @@
 					console.error(error);
 				} else {
 					optionsData.updateOptions(activeTab, rows);
-					optionsDraft.discardChanges();
+					optionsDraft.discardAllChanges();
 				}
 			} else if (result.type === 'error') {
 				console.error(result.error);
@@ -148,7 +146,7 @@
 						size="sm"
 						disabled={!optionsDraft.hasChanges || isBusy}
 						onclick={() => onPendingAction('save')}>
-						<BusyIcon {isBusy}><SaveIcon /></BusyIcon>
+						<BusyIcon {isBusy}><Save /></BusyIcon>
 						<span class="hidden md:inline">Save</span>
 						{#if optionsDraft.hasChanges}
 							<Badge
@@ -164,7 +162,7 @@
 						size="sm"
 						disabled={!optionsDraft.hasChanges || isBusy}
 						onclick={() => onPendingAction('clear')}>
-						<BusyIcon {isBusy}><TrashIcon class="text-destructive" /></BusyIcon>
+						<BusyIcon {isBusy}><Trash class="text-destructive" /></BusyIcon>
 						<span class="hidden md:inline">Clear</span>
 					</Button>
 
@@ -173,7 +171,7 @@
 						size="sm"
 						disabled={optionsDraft.modifiedEntries.length > 0 || isBusy}
 						onclick={onAdd}>
-						<BusyIcon {isBusy}><PlusIcon /></BusyIcon>
+						<BusyIcon {isBusy}><Plus /></BusyIcon>
 						<span class="hidden md:inline">Add</span>
 					</Button>
 				</div>
@@ -195,7 +193,6 @@
 										options={opt}
 										{onEdit}
 										{onDiscard}
-										{onRemove}
 										{optionsDraft} />
 								</fieldset>
 							</form>

@@ -1,27 +1,55 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import type { TablePermissions } from '$lib/app-types';
-  import BusyIcon from '$lib/components/busy-icon.svelte';
-  import {PlusIcon, SaveIcon, TrashIcon} from '@lucide/svelte/icons';
-  import {Badge} from '$ui/badge/index'
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import BusyIcon from '$lib/components/busy-icon.svelte';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Save from '@lucide/svelte/icons/save';
+	import Trash from '@lucide/svelte/icons/trash';
+	import { Badge } from '$ui/badge/index';
 	import { Skeleton } from '$ui/skeleton/index';
-	import {Button} from '$ui/button/index';
-  import * as Select from '$ui/select/index';
-	import { DataState } from '$lib/data-utils';
+	import { Button } from '$ui/button/index';
+	import * as Select from '$ui/select/index';
+	import { DraftState } from '$lib/data-utils';
+	import { applyAction, enhance } from '$app/forms';
+	import { tick } from 'svelte';
 
 	let { data }: PageProps = $props();
-	let roleId: string  = $state("");
-  let isBusy = $state(false);
+	let roleForm: HTMLFormElement | undefined = $state();
+	let activeRoleId: string = $state('');
+	let isBusy = $state(false);
 	let selectedRole = $derived(
-		data.settingsPermissions.roles.find((role) => role.id === Number(roleId))?.name ?? "Select Role"
+		data.settingsPermissions.roles.find((role) => role.id === Number(activeRoleId))
 	);
-  const dataState = new DataState<TablePermissions>(null, {
-		code: '',
-		name: '',
-		description: '',
-		active: true,
-		locked: true
-	});
+
+	const permDraft = new DraftState<TablePermissions>(
+		'',
+		{ required: ['resourceId', 'roleId'] },
+		{ canCreate: false, canRead: false, canUpdate: false, canDelete: false }
+	);
+	let permData: TablePermissions[] = $state([]);
+
+	const onSelectRole: SubmitFunction = async () => {
+		isBusy = true;
+		return async ({ result }) => {
+			if (result.type === 'success' && result.data) {
+				const { permissions } = result.data;
+				permData = permissions.rows;
+			}
+			if (result.type === 'error') {
+				console.error(result.error);
+			} else if (result.type === 'failure') {
+				console.error(result.data?.message);
+			}
+
+			isBusy = false;
+		};
+	};
+
+	async function onValueChange() {
+		await tick();
+		roleForm?.requestSubmit();
+	}
 </script>
 
 {#await data.settingsPermissions}
@@ -38,55 +66,57 @@
 	<div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
 		<div class="flex-col justify-start gap-4">
 			<div class="flex items-center justify-between">
-				<Select.Root type="single" name="roles" bind:value={roleId}>
-					<Select.Trigger class="w-[180px]">
-						{selectedRole}
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Group>
-							<Select.Label>Roles</Select.Label>
-							{#each settingsPermissions.roles as role (role.id)}
-								<Select.Item
-									value={String(role.id)}
-									label={role.name}
-									disabled={String(role.id) === roleId}>
-									{role.name}
-								</Select.Item>
-							{/each}
-						</Select.Group>
-					</Select.Content>
-				</Select.Root>
-        <div class="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-            disabled={!dataState.hasChanges || isBusy}>
-						<BusyIcon {isBusy}><SaveIcon /></BusyIcon>
-						<span class="hidden md:inline">Save</span>
-						{#if dataState.hasChanges}
-							<Badge
-								variant="destructive"
-								class="h-4 min-w-4 rounded-full px-1 font-mono tabular-nums"
-								>{dataState.updatedData.length || dataState.createdData.length}
-							</Badge>
-						{/if}
-					</Button>
+				<form
+					method="POST"
+					action="?/get-permissions"
+					use:enhance={onSelectRole}
+					bind:this={roleForm}>
+					<Select.Root type="single" bind:value={activeRoleId} {onValueChange} name="roleId">
+						<Select.Trigger class="w-[180px]">
+							{selectedRole?.name ?? 'Selected Role'}
+						</Select.Trigger>
+						<Select.Content>
+							<Select.Group>
+								<Select.Label>Roles</Select.Label>
+								{#each settingsPermissions.roles as role (role.id)}
+									<Select.Item
+										value={String(role.id)}
+										label={role.name}
+										disabled={role.id === selectedRole?.id}>
+										{role.name}
+									</Select.Item>
+								{/each}
+							</Select.Group>
+						</Select.Content>
+					</Select.Root>
+				</form>
+				<div class="flex items-center gap-2">
+					{#if permData.length}
+						<Button variant="outline" size="sm" disabled={!permDraft.hasChanges || isBusy}>
+							<BusyIcon {isBusy}><Save /></BusyIcon>
+							<span class="hidden md:inline">Save</span>
+							{#if permDraft.hasChanges}
+								<Badge
+									variant="destructive"
+									class="h-4 min-w-4 rounded-full px-1 font-mono tabular-nums"
+									>{permDraft.modifiedEntries.length || permDraft.newEntries.length}
+								</Badge>
+							{/if}
+						</Button>
 
-					<Button
-						variant="outline"
-						size="sm"
-						disabled={!dataState.hasChanges || isBusy}>
-						<BusyIcon {isBusy}><TrashIcon class="text-destructive" /></BusyIcon>
-						<span class="hidden md:inline">Clear</span>
-					</Button>
+						<Button variant="outline" size="sm" disabled={!permDraft.hasChanges || isBusy}>
+							<BusyIcon {isBusy}><Trash class="text-destructive" /></BusyIcon>
+							<span class="hidden md:inline">Clear</span>
+						</Button>
 
-					<Button
-						variant="outline"
-						size="sm"
-						disabled={dataState.updatedData.length > 0 || isBusy}>
-						<BusyIcon {isBusy}><PlusIcon /></BusyIcon>
-						<span class="hidden md:inline">Add</span>
-					</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							disabled={permDraft.modifiedEntries.length > 0 || isBusy}>
+							<BusyIcon {isBusy}><Plus /></BusyIcon>
+							<span class="hidden md:inline">Add</span>
+						</Button>
+					{/if}
 				</div>
 			</div>
 		</div>

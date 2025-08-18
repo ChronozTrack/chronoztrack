@@ -5,7 +5,9 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 	import { useSidebar } from '$lib/components/ui/sidebar/index';
 	import { AVATAR_SRC } from '$lib/defaults/app-defaults';
-	import { ChevronsUpDownIcon, CircleUserIcon, LogOutIcon } from '@lucide/svelte';
+	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
+	import CircleUser from '@lucide/svelte/icons/circle-user';
+	import LogOut from '@lucide/svelte/icons/log-out';
 
 	const sidebar = useSidebar();
 	interface NavUserProps {
@@ -15,12 +17,13 @@
 	let { user }: NavUserProps = $props();
 	let logoutForm: HTMLFormElement | undefined = $state();
 
-	function logout(){
-		if(logoutForm){
-			logoutForm.requestSubmit()
+	function logout() {
+		if (logoutForm) {
+			logoutForm.requestSubmit();
 		}
 	}
 </script>
+
 <form hidden method="POST" action="/logout" bind:this={logoutForm}></form>
 <Sidebar.Menu>
 	<Sidebar.MenuItem>
@@ -30,8 +33,7 @@
 					<Sidebar.MenuButton
 						size="lg"
 						class="data[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-						{...props}
-					>
+						{...props}>
 						<Avatar.Root class="size-8 rounded-lg">
 							<Avatar.Image src={AVATAR_SRC} />
 							<Avatar.Fallback class="rounded-lg">CT</Avatar.Fallback>
@@ -40,7 +42,7 @@
 							<span class="truncate font-medium">{user.name}</span>
 							<span class="font-xs truncate">{user.role.name}</span>
 						</div>
-						<ChevronsUpDownIcon class="ml-auto size-4" />
+						<ChevronsUpDown class="ml-auto size-4" />
 					</Sidebar.MenuButton>
 				{/snippet}
 			</DropdownMenu.Trigger>
@@ -48,8 +50,7 @@
 				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				align="end"
-				sideOffset={4}
-			>
+				sideOffset={4}>
 				<DropdownMenu.Label class="p-0 font-normal">
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 						<Avatar.Root class="size-8 rounded-lg">
@@ -62,20 +63,20 @@
 						</div>
 					</div>
 				</DropdownMenu.Label>
-        <DropdownMenu.Separator />
+				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<a href="/profile">
-					<DropdownMenu.Item>
-						<CircleUserIcon />
-						Pofile
-					</DropdownMenu.Item>
+						<DropdownMenu.Item>
+							<CircleUser />
+							Pofile
+						</DropdownMenu.Item>
 					</a>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item onclick={logout}>
-						<LogOutIcon />
-            Log out
+						<LogOut />
+						Log out
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 			</DropdownMenu.Content>

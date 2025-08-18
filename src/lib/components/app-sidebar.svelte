@@ -2,7 +2,7 @@
 	import type { AppPages, User } from '$lib/app-types';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 	import NavUser from '$lib/components/nav-user.svelte';
-	import { Link } from '@lucide/svelte/icons';
+	import Link from '@lucide/svelte/icons/link';
 
 	interface AppSidebarProps {
 		userRoutes: AppPages[];

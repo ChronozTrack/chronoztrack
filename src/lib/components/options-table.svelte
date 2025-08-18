@@ -3,8 +3,10 @@
 	import * as Table from '$ui/table/index';
 	import { Button } from '$ui/button/index';
 	import { Input } from '$ui/input/index';
-	import { PencilIcon, TrashIcon, PencilOffIcon } from '@lucide/svelte/icons';
-	import { DraftState } from '$lib/data-utils/data-state.svelte';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Trash from '@lucide/svelte/icons/trash'
+	import PencilOff from '@lucide/svelte/icons/pencil-off'
+	import { DraftState } from '$lib/data-utils';
 	import SwitchInput from '$lib/components/switch-input.svelte';
 
 	interface OptionsTableProps {
@@ -13,7 +15,6 @@
 		data: OptionsBaseTable[];
 		onDiscard: (refId: string) => void;
 		onEdit: (data: OptionsBaseTable) => void;
-		onRemove: (refId: string) => void;
 		optionsDraft: DraftState<OptionsBaseTable>;
 	}
 
@@ -21,7 +22,6 @@
 		data = [],
 		options,
 		onDiscard,
-		onRemove,
 		onEdit,
 		optionsDraft,
 		table
@@ -84,7 +84,7 @@
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(modifiedEntries[idx].referenceId)}>
-							<TrashIcon class="text-destructive" />
+							<Trash class="text-destructive" />
 						</Button>
 					</Table.Cell>
 				{:else}
@@ -97,11 +97,11 @@
 							variant="ghost"
 							size="sm"
 							disabled={optionsDraft.actionState === 'create' || row.locked}
-							onclick={() => onEdit(row)}>
+							onclick={() => onEdit($state.snapshot(row))}>
 							{#if optionsDraft.actionState === 'create' || row.locked}
-								<PencilOffIcon />
+								<PencilOff />
 							{:else}
-								<PencilIcon />
+								<Pencil />
 							{/if}
 						</Button>
 					</Table.Cell>
@@ -145,8 +145,8 @@
 						<SwitchInput name={inputName('active')} bind:checked={newRow.active} />
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
-						<Button variant="ghost" size="sm" onclick={() => onRemove(newRow.referenceId)}>
-							<TrashIcon />
+						<Button variant="ghost" size="sm" onclick={() => onDiscard(newRow.referenceId)}>
+							<Trash />
 						</Button>
 					</Table.Cell>
 				</Table.Row>

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Loader2Icon } from '@lucide/svelte/icons';
+	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	let { isBusy = $bindable(false), children } = $props();
 </script>
 
 {#if isBusy}
-	<Loader2Icon class="animate-spin" />
+	<LoaderCircle class="animate-spin" />
 {:else}
 	{@render children?.()}
 {/if}

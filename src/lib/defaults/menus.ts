@@ -1,17 +1,19 @@
 import type { AppPages, AppOptionsType } from "$lib/app-types";
-import {
-  FileClockIcon,
-  CalendarClockIcon,
-  ClockArrowDownIcon,
-  UsersIcon,
-  BriefcaseIcon,
-  BuildingIcon,
-  ShieldUserIcon,
-  TimerIcon,
-  FileCogIcon,
-  TagsIcon,
-  ShieldCheckIcon
-} from '@lucide/svelte/icons';
+/**
+ * https://github.com/lucide-icons/lucide/issues/1284
+ * importing directly from '@lucide/svelte/icons' loads the entire icons
+ */
+import FileClock from '@lucide/svelte/icons/file-clock';
+import CalendarClock from '@lucide/svelte/icons/calendar-clock';
+import ClockArrowDown from '@lucide/svelte/icons/clock-arrow-down';
+import Users from '@lucide/svelte/icons/users';
+import Briefcase from '@lucide/svelte/icons/briefcase';
+import Building from '@lucide/svelte/icons/building';
+import ShieldUser from '@lucide/svelte/icons/shield-user';
+import Timer from '@lucide/svelte/icons/timer';
+import FileCog from '@lucide/svelte/icons/file-cog';
+import Tags from '@lucide/svelte/icons/tags';
+import ShieldCheck from '@lucide/svelte/icons/shield-check';
 
 export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
   {
@@ -19,7 +21,7 @@ export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
     id: 'jobs',
     href: '#jobs',
     title: "Jobs",
-    icon: BriefcaseIcon,
+    icon: Briefcase,
     formId: "formapp-jobs",
     formAction: {
       create: "?/create-jobs",
@@ -31,7 +33,7 @@ export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
     id: 'departments',
     href: "#departments",
     title: 'Departments',
-    icon: BuildingIcon,
+    icon: Building,
     formId: `formapp-departments`,
     formAction: {
       create: `?/create-departments`,
@@ -43,7 +45,7 @@ export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
     id: 'roles',
     href: '#roles',
     title: 'Roles',
-    icon: ShieldCheckIcon,
+    icon: ShieldCheck,
     formId: `formapp-roles`,
     formAction: {
       create: `?/create-roles`,
@@ -55,7 +57,7 @@ export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
     id: 'time_events',
     href: '#time_events',
     title: "Time Events",
-    icon: TimerIcon,
+    icon: Timer,
     formId: "formapp-time_events",
     formAction: {
       create: "?/create-time_events",
@@ -69,21 +71,21 @@ export const SETTING_PAGES: AppPages[] = [
     resource: 'settings.options',
     href: "/settings/options",
     title: "Options",
-    icon: FileCogIcon,
+    icon: FileCog,
     id: 'options',
   },
   {
     resource: 'settings.permissions',
     href: "/settings/permissions",
     title: "Permissions",
-    icon: ShieldUserIcon,
+    icon: ShieldUser,
     id: 'permissions'
   },
   {
     resource: 'settings.alias',
     href: "/settings/alias",
     title: 'Alias',
-    icon: TagsIcon,
+    icon: Tags,
     id: 'alias',
   },
 ]
@@ -93,28 +95,28 @@ export const APP_PAGES: AppPages[] = [
     resource: 'entries',
     href: '/entries',
     title: 'Entries',
-    icon: ClockArrowDownIcon,
+    icon: ClockArrowDown,
     id: 'entries',
   },
   {
     resource: 'timesheets',
     href: '/timesheets',
     title: 'Timesheets',
-    icon: FileClockIcon,
+    icon: FileClock,
     id: 'timesheets'
   },
   {
     resource: "users",
     href: "/users",
     title: "Users",
-    icon: UsersIcon,
+    icon: Users,
     id: 'users',
   },
   {
     resource: 'schedules',
     href: "/schedules",
     title: "Schedules",
-    icon: CalendarClockIcon,
+    icon: CalendarClock,
     id: 'schedules'
   },
 ]
