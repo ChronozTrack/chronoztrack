@@ -6,6 +6,7 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash from '@lucide/svelte/icons/trash'
 	import PencilOff from '@lucide/svelte/icons/pencil-off'
+	import Lock from '@lucide/svelte/icons/lock';
 	import { DraftState } from '$lib/data-utils';
 	import SwitchInput from '$lib/components/switch-input.svelte';
 
@@ -98,7 +99,9 @@
 							size="sm"
 							disabled={optionsDraft.actionState === 'create' || row.locked}
 							onclick={() => onEdit($state.snapshot(row))}>
-							{#if optionsDraft.actionState === 'create' || row.locked}
+							{#if row.locked}
+								<Lock />
+							{:else if optionsDraft.actionState === 'create'}
 								<PencilOff />
 							{:else}
 								<Pencil />

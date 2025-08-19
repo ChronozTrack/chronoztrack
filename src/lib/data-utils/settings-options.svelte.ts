@@ -1,5 +1,24 @@
 import type { AppOptionsType, OptionsBaseTable } from "$lib/app-types";
 
+export class TableData<T>{
+  #data: T[] = $state([]);
+  constructor(data: T[]){
+    this.#data = data;
+  }
+
+  get data(){
+    return this.#data;
+  }
+
+  set data(val: T[]){
+    this.#data = val;
+  }
+
+  public update(values: T | T[]){
+    
+  }
+}
+
 export class AppOptionsData<T extends OptionsBaseTable> {
   private _options: Record<AppOptionsType, T[]> = $state({
     jobs: [],

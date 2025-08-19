@@ -6,6 +6,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Save from '@lucide/svelte/icons/save';
 	import Trash from '@lucide/svelte/icons/trash';
+	import PermissionsTable from '$lib/components/permissions-table.svelte';
 	import { Badge } from '$ui/badge/index';
 	import { Skeleton } from '$ui/skeleton/index';
 	import { Button } from '$ui/button/index';
@@ -79,12 +80,14 @@
 							<Select.Group>
 								<Select.Label>Roles</Select.Label>
 								{#each settingsPermissions.roles as role (role.id)}
-									<Select.Item
-										value={String(role.id)}
-										label={role.name}
-										disabled={role.id === selectedRole?.id}>
-										{role.name}
-									</Select.Item>
+									{#if role.active}
+										<Select.Item
+											value={String(role.id)}
+											label={role.name}
+											disabled={role.id === selectedRole?.id}>
+											{role.name}
+										</Select.Item>
+									{/if}
 								{/each}
 							</Select.Group>
 						</Select.Content>
@@ -103,12 +106,10 @@
 								</Badge>
 							{/if}
 						</Button>
-
 						<Button variant="outline" size="sm" disabled={!permDraft.hasChanges || isBusy}>
 							<BusyIcon {isBusy}><Trash class="text-destructive" /></BusyIcon>
 							<span class="hidden md:inline">Clear</span>
 						</Button>
-
 						<Button
 							variant="outline"
 							size="sm"
@@ -116,6 +117,16 @@
 							<BusyIcon {isBusy}><Plus /></BusyIcon>
 							<span class="hidden md:inline">Add</span>
 						</Button>
+					{/if}
+				</div>
+			</div>
+			<div class="relative flex flex-col overflow-auto pt-4">
+				<div class="overflow-hidden rounded-lg border p-2">
+					{#if selectedRole}
+						<PermissionsTable
+							role={selectedRole}
+							permissions={permData}
+							resources={settingsPermissions.resources} />
 					{/if}
 				</div>
 			</div>

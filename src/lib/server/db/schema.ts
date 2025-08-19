@@ -63,7 +63,8 @@ export const tblRolePermissions = sqliteTable("role_permissions", {
   canCreate: integer({ mode: "boolean" }).default(false).notNull(),
   canRead: integer({ mode: "boolean" }).default(false).notNull(),
   canUpdate: integer({ mode: "boolean" }).default(false).notNull(),
-  canDelete: integer({ mode: "boolean" }).default(false).notNull()
+  canDelete: integer({ mode: "boolean" }).default(false).notNull(),
+  locked: integer({ mode: "boolean" }).default(false).notNull(),
 },
   (table) => [
     primaryKey({ columns: [table.roleId, table.resourceId] }),
