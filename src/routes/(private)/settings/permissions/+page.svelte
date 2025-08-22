@@ -19,6 +19,7 @@
 	let { data }: PageProps = $props();
 	let resFormOpen = $state(false);
 	let roleForm: HTMLFormElement | undefined = $state();
+	let addForm: HTMLFormElement | undefined = $state();
 	let activeRoleId: string = $state('');
 	let isBusy = $state(false);
 	let selectedRole = $derived(
@@ -26,7 +27,7 @@
 	);
 
 	const permDraft = new DraftState<TablePermissions>(
-		'',
+		'role_permissions',
 		{ required: ['resourceId', 'roleId'] },
 		{ canCreate: false, canRead: false, canUpdate: false, canDelete: false }
 	);
@@ -58,19 +59,11 @@
 		roleForm?.requestSubmit();
 	}
 
-	function onAdd(id: number){
-		permDraft.addEntry({roleId: Number(activeRoleId), resourceId: id})
-	}
-
-	function onEdit(entry: TablePermissions){
+	function onEdit(entry: TablePermissions) {
 		permDraft.editEntry(entry);
 	}
 
-	function onDiscard(refId: string){
-		permDraft.discardEntry(refId);
-	}
-
-	function onClear(){
+	function onClear() {
 		permDraft.discardAllChanges();
 	}
 </script>
@@ -86,19 +79,26 @@
 		</div>
 	</div>
 {:then settingsPermissions}
-	{#if selectedRole}
-		<ResourceForm
-			bind:open={resFormOpen}
-			role={selectedRole}
-			resources={settingsPermissions.resources}
-			permissions={permData.data} 
-			{permDraft}
-			{onDiscard}
-			{onAdd}/>
-	{/if}
 	<div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
 		<div class="flex-col justify-start gap-4">
 			<div class="flex items-center justify-between">
+				<form hidden bind:this={addForm}>
+					{#if permDraft.newEntries.length}
+						{#each permDraft.newEntries as entry, idx (entry.resourceId)}
+							{@const inputName = (prefix: string) => `${permDraft.entity}[${idx}][${prefix}]`}
+							<input type="hidden" name={inputName('roleId')} value={entry.roleId} />
+							<input type="hidden" name={inputName('resourceId')} value={entry.resourceId} />
+						{/each}
+					{/if}
+				</form>
+				{#if selectedRole}
+					<ResourceForm
+						bind:open={resFormOpen}
+						role={selectedRole}
+						resources={data.settingsPermissions.resources}
+						permissions={permData.data}
+						{permDraft} />
+				{/if}
 				<form
 					method="POST"
 					action="?/get-permissions"
@@ -155,10 +155,10 @@
 			</div>
 			<div class="relative flex flex-col overflow-auto pt-4">
 				<div class="overflow-hidden rounded-lg border p-2">
-						<PermissionsTable
-							role={selectedRole}
-							permissions={permData.data}
-							resources={settingsPermissions.resources} />
+					<PermissionsTable
+						role={selectedRole}
+						permissions={permData.data}
+						resources={settingsPermissions.resources} />
 				</div>
 			</div>
 		</div>

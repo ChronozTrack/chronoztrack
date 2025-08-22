@@ -3,6 +3,7 @@
 	import type { DraftState } from '$lib/data-utils';
 	import { Button } from '$ui/button/index';
 	import { Checkbox } from '$ui/checkbox/index';
+	import { ScrollArea } from '$ui/scroll-area/index';
 	import * as Sheet from '$ui/sheet/index';
 	import * as Table from '$ui/table/index';
 
@@ -12,8 +13,6 @@
 		resources: TableResources[];
 		permissions: TablePermissions[];
 		permDraft: DraftState<TablePermissions>;
-		onAdd: (id: number) => void;
-		onDiscard: (refId: string) => void;
 	}
 
 	const TABLE = 'role_permissions';
@@ -23,15 +22,13 @@
 		resources,
 		permissions,
 		permDraft,
-		onAdd,
-		onDiscard,
 		...restProps
 	}: PermProps = $props();
 	let roleResource = $derived(new Set(permissions.map((perm) => perm.resourceId)));
 
 	function onChange(checked: boolean, resourceId: number) {
 		if (checked) {
-			permDraft.addEntry({roleId: role.id, resourceId})
+			permDraft.addEntry({ roleId: role.id, resourceId });
 		} else {
 			const entry = permDraft.getEntryByIds('new', { resourceId });
 			if (entry) {
@@ -63,11 +60,11 @@
 							<Table.Row>
 								<Table.Cell>
 									{#if hasResource}
-										<Checkbox
-											disabled={hasResource}
-											checked={hasResource}/>
+										<Checkbox disabled={hasResource} checked={hasResource} />
 									{:else}
-										<Checkbox name={inputName('resourceId')} onCheckedChange={(checked) => onChange(checked, resource.id)}/>
+										<Checkbox
+											name={inputName('resourceId')}
+											onCheckedChange={(checked) => onChange(checked, resource.id)} />
 									{/if}
 								</Table.Cell>
 								<Table.Cell>{resource.name}</Table.Cell>
