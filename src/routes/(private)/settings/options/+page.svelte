@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PageProps } from './$types';
-  import type { OptionsBaseTable, DialogAction } from '$lib/app-types';
+  import type { OptionsBaseTable, DialogAction, AppOptionsType } from '$lib/app-types';
   import type { SubmitFunction } from '@sveltejs/kit';
   import OptionsTable from '$lib/components/options-table.svelte';
   import DialogConfirm from '$lib/components/dialog-confirm.svelte';
@@ -14,7 +14,7 @@
   import { Skeleton } from '$ui/skeleton/index';
   import { OPTIONS_TAB } from '$lib/defaults/menus';
   import { DIALOG_MESSAGES } from '$lib/defaults/app-defaults';
-  import { DraftState, AppOptionsData } from '$lib/data-utils';
+  import { DraftState, TableDataState } from '$lib/data-utils';
   import { slide } from 'svelte/transition';
   import { applyAction, enhance } from '$app/forms';
   import { tick } from 'svelte';
@@ -32,7 +32,19 @@
     }
   );
 
-  const optionsData = new AppOptionsData(data.settingsOptions);
+  // const optionsData = new AppOptionsData(data.settingsOptions);
+  const optionsData: Record<AppOptionsType, TableDataState<OptionsBaseTable, 'id'>> = {
+    jobs: new TableDataState<OptionsBaseTable, 'id'>(data.settingsOptions?.jobs ?? [], ['id']),
+    roles: new TableDataState<OptionsBaseTable, 'id'>(data.settingsOptions?.roles ?? [], ['id']),
+    departments: new TableDataState<OptionsBaseTable, 'id'>(
+      data.settingsOptions?.departments ?? [],
+      ['id']
+    ),
+    time_events: new TableDataState<OptionsBaseTable, 'id'>(
+      data.settingsOptions?.time_events ?? [],
+      ['id']
+    )
+  };
 
   let isBusy = $state(false);
   let form: HTMLFormElement | undefined = $state();
@@ -44,7 +56,7 @@
   let userOptions = $derived(
     OPTIONS_TAB.filter((opt) => data.settingsOptions?.[opt.id].length > 0)
   );
-  let activeTab = $derived(userOptions[0]?.id);
+  let activeTab: AppOptionsType = $derived(userOptions[0]?.id);
   let formAction = $derived.by(() => {
     switch (optionsDraft.actionState) {
       case 'create':
@@ -97,7 +109,7 @@
         if (error) {
           console.error(error);
         } else {
-          optionsData.updateOptions(activeTab, rows);
+          optionsData[activeTab].update(rows);
           optionsDraft.discardAllChanges();
         }
       } else if (result.type === 'error') {
@@ -188,7 +200,7 @@
                 use:enhance={formSubmission}>
                 <fieldset disabled={isBusy}>
                   <OptionsTable
-                    data={optionsData.table(opt.id)}
+                    data={optionsData[opt.id].data}
                     table={opt.id}
                     options={opt}
                     {onEdit}

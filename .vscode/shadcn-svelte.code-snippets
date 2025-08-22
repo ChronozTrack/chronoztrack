@@ -1,0 +1,367 @@
+{
+  // ===== ACCORDION =====
+  "Accordion": {
+    "prefix": "<accordion",
+    "body": [
+      "<Accordion type=\"single\" collapsible>",
+      "  <Accordion.Item value=\"item-1\">",
+      "    <Accordion.Trigger>$1</Accordion.Trigger>",
+      "    <Accordion.Content>$0</Accordion.Content>",
+      "  </Accordion.Item>",
+      "</Accordion>"
+    ],
+    "description": "Shadcn-Svelte Accordion"
+  },
+
+  // ===== ALERT =====
+  "Alert": {
+    "prefix": "<alert",
+    "body": [
+      "<Alert>",
+      "  <Alert.Title>$1</Alert.Title>",
+      "  <Alert.Description>$0</Alert.Description>",
+      "</Alert>"
+    ],
+    "description": "Shadcn-Svelte Alert"
+  },
+
+  // ===== ALERT DIALOG =====
+  "Alert Dialog": {
+    "prefix": "<alert-dialog",
+    "body": [
+      "<AlertDialog>",
+      "  <AlertDialog.Trigger>$1</AlertDialog.Trigger>",
+      "  <AlertDialog.Content>",
+      "    <AlertDialog.Header>",
+      "      <AlertDialog.Title>$2</AlertDialog.Title>",
+      "      <AlertDialog.Description>$3</AlertDialog.Description>",
+      "    </AlertDialog.Header>",
+      "    <AlertDialog.Footer>",
+      "      <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>",
+      "      <AlertDialog.Action>Confirm</AlertDialog.Action>",
+      "    </AlertDialog.Footer>",
+      "  </AlertDialog.Content>",
+      "</AlertDialog>"
+    ],
+    "description": "Shadcn-Svelte Alert Dialog"
+  },
+
+  // ===== AVATAR =====
+  "Avatar": {
+    "prefix": "<avatar",
+    "body": [
+      "<Avatar>",
+      "  <Avatar.Image src=\"$1\" alt=\"$2\" />",
+      "  <Avatar.Fallback>$0</Avatar.Fallback>",
+      "</Avatar>"
+    ],
+    "description": "Shadcn-Svelte Avatar"
+  },
+
+  // ===== BADGE =====
+  "Badge": {
+    "prefix": "<badge",
+    "body": ["<Badge>$0</Badge>"],
+    "description": "Shadcn-Svelte Badge"
+  },
+
+  // ===== BUTTON =====
+  "Button": {
+    "prefix": "<btn",
+    "body": ["<Button>$0</Button>"],
+    "description": "Shadcn-Svelte Button"
+  },
+
+  // ===== CARD =====
+  "Card": {
+    "prefix": "<card",
+    "body": [
+      "<Card>",
+      "  <Card.Header>",
+      "    <Card.Title>$1</Card.Title>",
+      "    <Card.Description>$2</Card.Description>",
+      "  </Card.Header>",
+      "  <Card.Content>$0</Card.Content>",
+      "  <Card.Footer>$3</Card.Footer>",
+      "</Card>"
+    ],
+    "description": "Shadcn-Svelte Card"
+  },
+
+  // ===== CHECKBOX =====
+  "Checkbox": {
+    "prefix": "<checkbox",
+    "body": [
+      "<Checkbox id=\"$1\" />",
+      "<Label for=\"$1\">$0</Label>"
+    ],
+    "description": "Shadcn-Svelte Checkbox"
+  },
+
+  // ===== DIALOG =====
+  "Dialog": {
+    "prefix": "<dialog",
+    "body": [
+      "<Dialog>",
+      "  <Dialog.Trigger>$1</Dialog.Trigger>",
+      "  <Dialog.Content>",
+      "    <Dialog.Header>",
+      "      <Dialog.Title>$2</Dialog.Title>",
+      "      <Dialog.Description>$3</Dialog.Description>",
+      "    </Dialog.Header>",
+      "    $0",
+      "    <Dialog.Footer>",
+      "      <Dialog.Close>Close</Dialog.Close>",
+      "    </Dialog.Footer>",
+      "  </Dialog.Content>",
+      "</Dialog>"
+    ],
+    "description": "Shadcn-Svelte Dialog"
+  },
+
+  // ===== DROPDOWN MENU =====
+  "Dropdown Menu": {
+    "prefix": "<dropdown",
+    "body": [
+      "<DropdownMenu>",
+      "  <DropdownMenu.Trigger>$1</DropdownMenu.Trigger>",
+      "  <DropdownMenu.Content>",
+      "    <DropdownMenu.Item>$2</DropdownMenu.Item>",
+      "    <DropdownMenu.Item>$3</DropdownMenu.Item>",
+      "    <DropdownMenu.Separator />",
+      "    <DropdownMenu.Item>$0</DropdownMenu.Item>",
+      "  </DropdownMenu.Content>",
+      "</DropdownMenu>"
+    ],
+    "description": "Shadcn-Svelte Dropdown Menu"
+  },
+
+  // ===== INPUT =====
+  "Input": {
+    "prefix": "<input",
+    "body": ["<Input placeholder=\"$1\" />"],
+    "description": "Shadcn-Svelte Input"
+  },
+
+  // ===== LABEL =====
+  "Label": {
+    "prefix": "<label",
+    "body": ["<Label for=\"$1\">$0</Label>"],
+    "description": "Shadcn-Svelte Label"
+  },
+
+  // ===== MENUBAR =====
+  "Menubar": {
+    "prefix": "<menubar",
+    "body": [
+      "<Menubar>",
+      "  <Menubar.Menu>",
+      "    <Menubar.Trigger>$1</Menubar.Trigger>",
+      "    <Menubar.Content>",
+      "      <Menubar.Item>$2</Menubar.Item>",
+      "      <Menubar.Item>$0</Menubar.Item>",
+      "    </Menubar.Content>",
+      "  </Menubar.Menu>",
+      "</Menubar>"
+    ],
+    "description": "Shadcn-Svelte Menubar"
+  },
+
+  // ===== NAVIGATION MENU =====
+  "Navigation Menu": {
+    "prefix": "<navmenu",
+    "body": [
+      "<NavigationMenu>",
+      "  <NavigationMenu.List>",
+      "    <NavigationMenu.Item>",
+      "      <NavigationMenu.Trigger>$1</NavigationMenu.Trigger>",
+      "      <NavigationMenu.Content>$0</NavigationMenu.Content>",
+      "    </NavigationMenu.Item>",
+      "  </NavigationMenu.List>",
+      "</NavigationMenu>"
+    ],
+    "description": "Shadcn-Svelte Navigation Menu"
+  },
+
+  // ===== POPOVER =====
+  "Popover": {
+    "prefix": "<popover",
+    "body": [
+      "<Popover>",
+      "  <Popover.Trigger>$1</Popover.Trigger>",
+      "  <Popover.Content>$0</Popover.Content>",
+      "</Popover>"
+    ],
+    "description": "Shadcn-Svelte Popover"
+  },
+
+  // ===== PROGRESS =====
+  "Progress": {
+    "prefix": "<progress",
+    "body": ["<Progress value={$1} />"],
+    "description": "Shadcn-Svelte Progress"
+  },
+
+  // ===== RADIO GROUP =====
+  "Radio Group": {
+    "prefix": "<radio",
+    "body": [
+      "<RadioGroup value=\"$1\">",
+      "  <RadioGroup.Item value=\"option1\">Option 1</RadioGroup.Item>",
+      "  <RadioGroup.Item value=\"option2\">Option 2</RadioGroup.Item>",
+      "</RadioGroup>"
+    ],
+    "description": "Shadcn-Svelte Radio Group"
+  },
+
+  // ===== SCROLL AREA =====
+  "Scroll Area": {
+    "prefix": "<scrollarea",
+    "body": [
+      "<ScrollArea class=\"h-[200px] w-[200px]\">",
+      "  $0",
+      "</ScrollArea>"
+    ],
+    "description": "Shadcn-Svelte Scroll Area"
+  },
+
+  // ===== SELECT =====
+  "Select": {
+    "prefix": "<select",
+    "body": [
+      "<Select>",
+      "  <Select.Trigger>$1</Select.Trigger>",
+      "  <Select.Content>",
+      "    <Select.Item value=\"one\">One</Select.Item>",
+      "    <Select.Item value=\"two\">Two</Select.Item>",
+      "  </Select.Content>",
+      "</Select>"
+    ],
+    "description": "Shadcn-Svelte Select"
+  },
+
+  // ===== SEPARATOR =====
+  "Separator": {
+    "prefix": "<separator",
+    "body": ["<Separator />"],
+    "description": "Shadcn-Svelte Separator"
+  },
+
+  // ===== SHEET =====
+  "Sheet": {
+    "prefix": "<sheet",
+    "body": [
+      "<Sheet>",
+      "  <Sheet.Trigger>$1</Sheet.Trigger>",
+      "  <Sheet.Content>",
+      "    <Sheet.Header>",
+      "      <Sheet.Title>$2</Sheet.Title>",
+      "      <Sheet.Description>$3</Sheet.Description>",
+      "    </Sheet.Header>",
+      "    $0",
+      "  </Sheet.Content>",
+      "</Sheet>"
+    ],
+    "description": "Shadcn-Svelte Sheet"
+  },
+
+  // ===== SKELETON =====
+  "Skeleton": {
+    "prefix": "<skeleton",
+    "body": ["<Skeleton class=\"h-4 w-[250px]\" />"],
+    "description": "Shadcn-Svelte Skeleton"
+  },
+
+  // ===== SLIDER =====
+  "Slider": {
+    "prefix": "<slider",
+    "body": ["<Slider defaultValue={[50]} max={100} step={1} />"],
+    "description": "Shadcn-Svelte Slider"
+  },
+
+  // ===== SWITCH =====
+  "Switch": {
+    "prefix": "<switch",
+    "body": [
+      "<Switch id=\"$1\" />",
+      "<Label for=\"$1\">$0</Label>"
+    ],
+    "description": "Shadcn-Svelte Switch"
+  },
+
+  // ===== TABLE =====
+  "Table": {
+    "prefix": "<table",
+    "body": [
+      "<Table.Root>",
+      "  <Table.Header>",
+      "    <Table.Row>",
+      "      <Table.Head>$1</Table.Head>",
+      "      <Table.Head>$2</Table.Head>",
+      "    </Table.Row>",
+      "  </Table.Header>",
+      "  <Table.Body>",
+      "    <Table.Row>",
+      "      <Table.Cell>$3</Table.Cell>",
+      "      <Table.Cell>$0</Table.Cell>",
+      "    </Table.Row>",
+      "  </Table.Body>",
+      "</Table.Root>"
+    ],
+    "description": "Shadcn-Svelte Table"
+  },
+
+  // ===== TABS =====
+  "Tabs": {
+    "prefix": "<tabs",
+    "body": [
+      "<Tabs defaultValue=\"tab1\">",
+      "  <Tabs.List>",
+      "    <Tabs.Trigger value=\"tab1\">Tab 1</Tabs.Trigger>",
+      "    <Tabs.Trigger value=\"tab2\">Tab 2</Tabs.Trigger>",
+      "  </Tabs.List>",
+      "  <Tabs.Content value=\"tab1\">$1</Tabs.Content>",
+      "  <Tabs.Content value=\"tab2\">$0</Tabs.Content>",
+      "</Tabs>"
+    ],
+    "description": "Shadcn-Svelte Tabs"
+  },
+
+  // ===== TEXTAREA =====
+  "Textarea": {
+    "prefix": "<textarea",
+    "body": ["<Textarea placeholder=\"$1\" />"],
+    "description": "Shadcn-Svelte Textarea"
+  },
+
+  // ===== TOAST =====
+  "Toast": {
+    "prefix": "<toast",
+    "body": [
+      "<Toast>",
+      "  <Toast.Title>$1</Toast.Title>",
+      "  <Toast.Description>$0</Toast.Description>",
+      "</Toast>"
+    ],
+    "description": "Shadcn-Svelte Toast"
+  },
+
+  // ===== TOGGLE =====
+  "Toggle": {
+    "prefix": "<toggle",
+    "body": ["<Toggle>$0</Toggle>"],
+    "description": "Shadcn-Svelte Toggle"
+  },
+
+  // ===== TOOLTIP =====
+  "Tooltip": {
+    "prefix": "<tooltip",
+    "body": [
+      "<Tooltip>",
+      "  <Tooltip.Trigger>$1</Tooltip.Trigger>",
+      "  <Tooltip.Content>$0</Tooltip.Content>",
+      "</Tooltip>"
+    ],
+    "description": "Shadcn-Svelte Tooltip"
+  }
+}

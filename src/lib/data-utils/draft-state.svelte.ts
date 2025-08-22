@@ -1,5 +1,6 @@
 import { customId } from '$lib/utils';
 import type { UserAction } from '$lib/app-types';
+import { extractTablesRelationalConfig } from 'drizzle-orm';
 
 
 type DraftDataKeys<T> =
@@ -132,6 +133,26 @@ export class DraftState<T extends Record<string, unknown>> {
 		this.#checkRequirements(draft);
 		this.#modifiedEntries.push({ referenceId, ...draft });
 		this.#setActionState();
+	}
+
+	public getEntryByIds(entryType: 'new' | 'modified', objIds: Partial<T>){
+		let typeMap = {
+			new: this.#newEntries,
+			modified: this.#modifiedEntries,
+		};
+
+		let temp = typeMap[entryType];
+		
+		if(!temp.length) return undefined;
+		return temp.find(entry => {
+			for(const key in objIds){
+				if(entry[key] !== objIds[key]){
+					return false;
+				}
+			}
+
+			return true;
+		})
 	}
 
 	public discardEntry(referenceId: string){

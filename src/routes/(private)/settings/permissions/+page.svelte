@@ -7,15 +7,17 @@
 	import Save from '@lucide/svelte/icons/save';
 	import Trash from '@lucide/svelte/icons/trash';
 	import PermissionsTable from '$lib/components/permissions-table.svelte';
+	import ResourceForm from '$lib/components/resource-form.svelte';
 	import { Badge } from '$ui/badge/index';
 	import { Skeleton } from '$ui/skeleton/index';
 	import { Button } from '$ui/button/index';
 	import * as Select from '$ui/select/index';
-	import { DraftState } from '$lib/data-utils';
-	import { applyAction, enhance } from '$app/forms';
+	import { DraftState, TableDataState } from '$lib/data-utils';
+	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
 
 	let { data }: PageProps = $props();
+	let resFormOpen = $state(false);
 	let roleForm: HTMLFormElement | undefined = $state();
 	let activeRoleId: string = $state('');
 	let isBusy = $state(false);
@@ -28,14 +30,18 @@
 		{ required: ['resourceId', 'roleId'] },
 		{ canCreate: false, canRead: false, canUpdate: false, canDelete: false }
 	);
-	let permData: TablePermissions[] = $state([]);
+
+	let permData = new TableDataState<TablePermissions, 'roleId' | 'resourceId'>(
+		[],
+		['resourceId', 'roleId']
+	);
 
 	const onSelectRole: SubmitFunction = async () => {
 		isBusy = true;
 		return async ({ result }) => {
 			if (result.type === 'success' && result.data) {
 				const { permissions } = result.data;
-				permData = permissions.rows;
+				permData.data = permissions.rows;
 			}
 			if (result.type === 'error') {
 				console.error(result.error);
@@ -51,6 +57,22 @@
 		await tick();
 		roleForm?.requestSubmit();
 	}
+
+	function onAdd(id: number){
+		permDraft.addEntry({roleId: Number(activeRoleId), resourceId: id})
+	}
+
+	function onEdit(entry: TablePermissions){
+		permDraft.editEntry(entry);
+	}
+
+	function onDiscard(refId: string){
+		permDraft.discardEntry(refId);
+	}
+
+	function onClear(){
+		permDraft.discardAllChanges();
+	}
 </script>
 
 {#await data.settingsPermissions}
@@ -64,6 +86,16 @@
 		</div>
 	</div>
 {:then settingsPermissions}
+	{#if selectedRole}
+		<ResourceForm
+			bind:open={resFormOpen}
+			role={selectedRole}
+			resources={settingsPermissions.resources}
+			permissions={permData.data} 
+			{permDraft}
+			{onDiscard}
+			{onAdd}/>
+	{/if}
 	<div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
 		<div class="flex-col justify-start gap-4">
 			<div class="flex items-center justify-between">
@@ -94,7 +126,7 @@
 					</Select.Root>
 				</form>
 				<div class="flex items-center gap-2">
-					{#if permData.length}
+					{#if selectedRole}
 						<Button variant="outline" size="sm" disabled={!permDraft.hasChanges || isBusy}>
 							<BusyIcon {isBusy}><Save /></BusyIcon>
 							<span class="hidden md:inline">Save</span>
@@ -113,7 +145,8 @@
 						<Button
 							variant="outline"
 							size="sm"
-							disabled={permDraft.modifiedEntries.length > 0 || isBusy}>
+							disabled={permDraft.modifiedEntries.length > 0 || isBusy}
+							onclick={() => (resFormOpen = true)}>
 							<BusyIcon {isBusy}><Plus /></BusyIcon>
 							<span class="hidden md:inline">Add</span>
 						</Button>
@@ -122,12 +155,10 @@
 			</div>
 			<div class="relative flex flex-col overflow-auto pt-4">
 				<div class="overflow-hidden rounded-lg border p-2">
-					{#if selectedRole}
 						<PermissionsTable
 							role={selectedRole}
-							permissions={permData}
+							permissions={permData.data}
 							resources={settingsPermissions.resources} />
-					{/if}
 				</div>
 			</div>
 		</div>
