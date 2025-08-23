@@ -5,19 +5,24 @@
 	import SwitchInput from '$lib/components/switch-input.svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Lock from '@lucide/svelte/icons/lock';
+	import Delete from '@lucide/svelte/icons/delete';
+	import type { DraftState } from '$lib/data-utils';
 
 	interface PermTableProps {
 		role?: TableRoles;
 		permissions: TablePermissions[];
 		resources: TableResources[];
+		permDraft: DraftState<TablePermissions>;
+		onDelete: (permission: TablePermissions) => void;
+		onEdit: (permissions: TablePermissions) => void;
 	}
 
 	const TABLE = 'role_permissions';
-	let { role, resources, permissions }: PermTableProps = $props();
+	let { role, resources, permissions, onDelete, onEdit }: PermTableProps = $props();
 </script>
 
 <Table.Root>
-	<Table.Caption>{role?.name ?? "Role"} Access</Table.Caption>
+	<Table.Caption>{role?.name ?? 'Role'} Access</Table.Caption>
 	<Table.Header>
 		<Table.Row>
 			<Table.Head class="width-auto">Resource</Table.Head>
@@ -73,14 +78,14 @@
 						<Table.Cell class={['text-center', perm.canDelete ? '' : 'text-destructive']}
 							>{perm.canDelete ? 'Yes' : 'No'}
 						</Table.Cell>
-						<Table.Cell class="text-center">
-							<Button variant="ghost" size="sm">
-								{#if perm.locked}
-									<Lock />
-								{:else}
-									<Pencil />
-								{/if}
-							</Button>
+						<Table.Cell class="flex justify-center">
+							{#if perm.locked}
+								<Lock size={16} />
+							{:else}
+								<Button variant="ghost" size="sm" onclick={() => onEdit(perm)}><Pencil /></Button>
+								<Button variant="ghost" size="sm" onclick={() => onDelete(perm)}
+									><Delete class="text-destructive" /></Button>
+							{/if}
 						</Table.Cell>
 					{/if}
 				</Table.Row>

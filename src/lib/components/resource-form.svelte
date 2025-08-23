@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { TablePermissions, TableResources, TableRoles } from '$lib/app-types';
 	import type { DraftState } from '$lib/data-utils';
-	import { Button } from '$ui/button/index';
+	import { Button, buttonVariants } from '$ui/button/index';
 	import { Checkbox } from '$ui/checkbox/index';
 	import { ScrollArea } from '$ui/scroll-area/index';
 	import * as Sheet from '$ui/sheet/index';
@@ -13,6 +13,7 @@
 		resources: TableResources[];
 		permissions: TablePermissions[];
 		permDraft: DraftState<TablePermissions>;
+    addRoles: () => void;
 	}
 
 	const TABLE = 'role_permissions';
@@ -22,6 +23,7 @@
 		resources,
 		permissions,
 		permDraft,
+    addRoles,
 		...restProps
 	}: PermProps = $props();
 	let roleResource = $derived(new Set(permissions.map((perm) => perm.resourceId)));
@@ -75,8 +77,9 @@
 				</Table.Root>
 			</Sheet.Description>
 		</Sheet.Header>
-		<Sheet.Footer>
-			<Button variant="outline" class="mx-auto w-1/3">Add Resources</Button>
+		<Sheet.Footer class="flex flex-row items-center gap-2">
+			<Button variant="outline" onclick={addRoles}>Add Resources</Button>
+			<Sheet.Close class={buttonVariants({ variant: 'destructive' })}>Cancel</Sheet.Close>
 		</Sheet.Footer>
 	</Sheet.Content>
 </Sheet.Root>

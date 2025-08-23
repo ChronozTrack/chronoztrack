@@ -1,5 +1,5 @@
 import { db } from "$lib/server/db";
-import { tblResources, tblRolePermissions } from "$lib/server/db/schema";
+import { tblRolePermissions } from "$lib/server/db/schema";
 import { createSchemaFactory } from "drizzle-zod";
 import { and, eq, inArray, sql, SQL } from 'drizzle-orm';
 import { z, ZodError } from "zod";
@@ -66,7 +66,7 @@ export class RolePermissionController<T extends typeof tblRolePermissions> {
     const sqlFields = validData.data.reduce((obj, row) => {
       this.#updatableFields.forEach(field => {
         if (field in row) {
-          if (!obj.hasOwnProperty(field)) {
+          if (!Object.hasOwn(obj,field)) {
             obj[field] = [];
             obj[field].push(sql`(case`)
           }

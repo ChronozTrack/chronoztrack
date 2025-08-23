@@ -1,7 +1,5 @@
 import { customId } from '$lib/utils';
 import type { UserAction } from '$lib/app-types';
-import { extractTablesRelationalConfig } from 'drizzle-orm';
-
 
 type DraftDataKeys<T> =
 	| { required: (keyof T)[]; omit?: never }
@@ -33,7 +31,7 @@ export class DraftState<T extends Record<string, unknown>> {
 		return this.#modifiedEntries;
 	}
 
-	get removeEnries() {
+	get removedEnries() {
 		return this.#removedEntries;
 	}
 
@@ -70,7 +68,7 @@ export class DraftState<T extends Record<string, unknown>> {
 	#isRequiredMatch(overrides: Partial<T> = {}) {
 		if (this.#requiredKeys.length > 1) {
 			return this.#requiredKeys.every((key) => {
-				let val = overrides[key];
+				const val = overrides[key];
 				return val !== undefined || val !== null;
 			});
 		}
@@ -86,7 +84,7 @@ export class DraftState<T extends Record<string, unknown>> {
 	}
 
 	#mergedDrafts(data: Partial<T>, overrides: Partial<T>) {
-		let draft = { ...data, ...overrides };
+		const draft = { ...data, ...overrides };
 
 		this.#checkRequirements(draft);
 
@@ -125,6 +123,15 @@ export class DraftState<T extends Record<string, unknown>> {
 		this.#setActionState();
 	}
 
+	public delteEntry(entry: T) {
+		this.#forceClearOtherEntries('delete');
+
+		this.#checkRequirements(entry);
+		const referenceId = customId();
+		this.#removedEntries.push({ referenceId, ...entry });
+		this.#setActionState();
+	}
+
 	public editEntry(data: T, overrides: Partial<T> = {}) {
 		this.#forceClearOtherEntries('update');
 
@@ -135,34 +142,36 @@ export class DraftState<T extends Record<string, unknown>> {
 		this.#setActionState();
 	}
 
-	public getEntryByIds(entryType: 'new' | 'modified', objIds: Partial<T>){
-		let typeMap = {
+	public getEntryByIds(entryType: 'new' | 'modified', objIds: Partial<T>) {
+		const typeMap = {
 			new: this.#newEntries,
-			modified: this.#modifiedEntries,
+			modified: this.#modifiedEntries
 		};
 
-		let temp = typeMap[entryType];
-		
-		if(!temp.length) return undefined;
-		return temp.find(entry => {
-			for(const key in objIds){
-				if(entry[key] !== objIds[key]){
+		const temp = typeMap[entryType];
+
+		if (!temp.length) return undefined;
+		return temp.find((entry) => {
+			for (const key in objIds) {
+				if (entry[key] !== objIds[key]) {
 					return false;
 				}
 			}
 
 			return true;
-		})
+		});
 	}
 
-	public discardEntry(referenceId: string){
-		if(this.#actionState === 'create'){
-			this.#newEntries = this.#newEntries.filter(val => val.referenceId !== referenceId)
-		}else if(this.#actionState === 'update'){
-			this.#modifiedEntries = this.#modifiedEntries.filter(val => val.referenceId !== referenceId)
+	public discardEntry(referenceId: string) {
+		if (this.#actionState === 'create') {
+			this.#newEntries = this.#newEntries.filter((val) => val.referenceId !== referenceId);
+		} else if (this.#actionState === 'update') {
+			this.#modifiedEntries = this.#modifiedEntries.filter(
+				(val) => val.referenceId !== referenceId
+			);
 		}
 
-		this.#setActionState
+		this.#setActionState();
 	}
 
 	public discardAllChanges() {

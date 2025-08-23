@@ -66,8 +66,35 @@
 	function onClear() {
 		permDraft.discardAllChanges();
 	}
+
+	async function addRoles() {
+		await tick();
+		addForm?.requestSubmit();
+	}
+
+	async function onDelete(permission: TablePermissions) {
+		permDraft.delteEntry(permission);
+	}
 </script>
 
+<form hidden bind:this={addForm} method="POST" action="?/create-permissions">
+	{#if permDraft.newEntries.length}
+		{#each permDraft.newEntries as entry, idx (entry.resourceId)}
+			{@const inputName = (prefix: string) => `${permDraft.entity}[${idx}][${prefix}]`}
+			<input type="hidden" name={inputName('roleId')} value={entry.roleId} />
+			<input type="hidden" name={inputName('resourceId')} value={entry.resourceId} />
+		{/each}
+	{/if}
+</form>
+{#if selectedRole}
+	<ResourceForm
+		bind:open={resFormOpen}
+		role={selectedRole}
+		resources={data.settingsPermissions.resources}
+		permissions={permData.data}
+		{permDraft}
+		{addRoles} />
+{/if}
 {#await data.settingsPermissions}
 	<div class="w-full max-w-2xl space-y-4 md:max-w-4xl">
 		<Skeleton class="h-9" />
@@ -82,23 +109,6 @@
 	<div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
 		<div class="flex-col justify-start gap-4">
 			<div class="flex items-center justify-between">
-				<form hidden bind:this={addForm}>
-					{#if permDraft.newEntries.length}
-						{#each permDraft.newEntries as entry, idx (entry.resourceId)}
-							{@const inputName = (prefix: string) => `${permDraft.entity}[${idx}][${prefix}]`}
-							<input type="hidden" name={inputName('roleId')} value={entry.roleId} />
-							<input type="hidden" name={inputName('resourceId')} value={entry.resourceId} />
-						{/each}
-					{/if}
-				</form>
-				{#if selectedRole}
-					<ResourceForm
-						bind:open={resFormOpen}
-						role={selectedRole}
-						resources={data.settingsPermissions.resources}
-						permissions={permData.data}
-						{permDraft} />
-				{/if}
 				<form
 					method="POST"
 					action="?/get-permissions"
@@ -158,7 +168,10 @@
 					<PermissionsTable
 						role={selectedRole}
 						permissions={permData.data}
-						resources={settingsPermissions.resources} />
+						resources={settingsPermissions.resources}
+						{permDraft}
+						{onDelete}
+						{onEdit} />
 				</div>
 			</div>
 		</div>
