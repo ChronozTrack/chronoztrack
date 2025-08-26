@@ -2,18 +2,11 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { customAlphabet } from 'nanoid';
 
-export type RawFormDataShape<T> =
-	T extends object
-		? { [K in keyof T]: RawFormDataShape<T[K]> }
-		: FormDataEntryValue;
-
-
 export const customId = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8);
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
-
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T;
@@ -22,13 +15,26 @@ export type WithoutChildren<T> = T extends { children?: any } ? Omit<T, 'childre
 export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
 
+export type RawFormDataShape<T> = T extends object
+	? { [K in keyof T]: RawFormDataShape<T[K]> }
+	: FormDataEntryValue;
+
+function preNormalize(value: FormDataEntryValue) {
+	if (typeof value === 'string' && value === 'false') {
+		return '';
+	}
+
+	return value;
+}
+
 export function parseFormData<T extends Record<string, unknown>>(
 	formData: FormData
 ): RawFormDataShape<T> {
 	const result: Record<string, unknown> = {};
 
-	for (const [rawKey, value] of formData.entries()) {
-		const keys = rawKey.replace(/\]/g, "").split("[");
+	for (const [rawKey, rawValue] of formData.entries()) {
+		const keys = rawKey.replace(/\]/g, '').split('[');
+		const value = preNormalize(rawValue);
 		let current: Record<string, unknown> | unknown[] = result;
 
 		for (let i = 0; i < keys.length; i++) {

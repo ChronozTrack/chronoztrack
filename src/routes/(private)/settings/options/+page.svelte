@@ -48,7 +48,7 @@
 	};
 
 	let isBusy = $state(false);
-	let form: HTMLFormElement | undefined = $state();
+	let postForm: HTMLFormElement | undefined = $state();
 	let pendingAction: DialogAction | null = $state(null);
 	let showDialog = $state(false);
 	let dialogAction: string = $state('Continue');
@@ -98,8 +98,8 @@
 	async function onConfirm() {
 		showDialog = false;
 		await tick();
-		if (pendingAction === 'save' && form) {
-			form.requestSubmit();
+		if (pendingAction === 'save' && postForm) {
+			postForm.requestSubmit();
 		} else if (pendingAction === 'clear') {
 			optionsDraft.discardAllChanges();
 		}
@@ -126,7 +126,7 @@
 			isBusy = false;
 		};
 	};
-	$inspect(optionsData.jobs.data)
+	$inspect(optionsData.jobs.data);
 </script>
 
 {#if formAction}
@@ -136,7 +136,7 @@
 		data={formAction.entries}
 		table={optionsDraft.entity}
 		enhanceFunction={formSubmission}
-		bind:ref={form}
+		bind:ref={postForm}
 	/>
 {/if}
 

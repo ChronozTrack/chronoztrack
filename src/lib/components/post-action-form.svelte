@@ -19,14 +19,6 @@
 		enhanceFunction,
 		...restProps
 	}: FormProps = $props();
-
-	function dataType(value: Data[keyof Data]){
-		if(typeof value === 'boolean'){
-			return value ? 'true' : '';
-		}
-
-		return value ?? ''
-	}
 </script>
 
 <form bind:this={ref} method="POST" {...restProps} use:enhance={enhanceFunction}>
@@ -35,7 +27,7 @@
 		{#each keys as k}
 			{#if Object.hasOwn(item, k)}
 				{@const inputName = `${table}[${idx}][${String(k)}]`}
-				<input type="hidden" value={dataType(item[k])} name={inputName} />
+				<input type="hidden" value={item[k]} name={inputName} />
 			{/if}
 		{/each}
 	{/each}
