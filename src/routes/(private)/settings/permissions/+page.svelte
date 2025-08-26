@@ -28,7 +28,7 @@
 
 	const permDraft = new DraftState<TablePermissions>(
 		'role_permissions',
-		{ required: ['resourceId', 'roleId'] },
+		{ primary: ['roleId', 'resourceId'], isRequired: true },
 		{ canCreate: false, canRead: false, canUpdate: false, canDelete: false }
 	);
 
@@ -63,7 +63,7 @@
 		permDraft.editEntry(entry);
 	}
 
-	function onClear() {
+	function onClear(){
 		permDraft.discardAllChanges();
 	}
 
@@ -73,8 +73,9 @@
 	}
 
 	async function onDelete(permission: TablePermissions) {
-		permDraft.delteEntry(permission);
+		permDraft.deleteEntry(permission);
 	}
+
 </script>
 
 <form hidden bind:this={addForm} method="POST" action="?/create-permissions">
@@ -144,11 +145,11 @@
 								<Badge
 									variant="destructive"
 									class="h-4 min-w-4 rounded-full px-1 font-mono tabular-nums"
-									>{permDraft.modifiedEntries.length || permDraft.newEntries.length}
+									>{permDraft.totalChanges()}
 								</Badge>
 							{/if}
 						</Button>
-						<Button variant="outline" size="sm" disabled={!permDraft.hasChanges || isBusy}>
+						<Button variant="outline" size="sm" disabled={!permDraft.hasChanges || isBusy} onclick={onClear}>
 							<BusyIcon {isBusy}><Trash class="text-destructive" /></BusyIcon>
 							<span class="hidden md:inline">Clear</span>
 						</Button>

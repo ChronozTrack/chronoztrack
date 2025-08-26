@@ -5,7 +5,7 @@ import { z, ZodError } from "zod";
 import { tblRoles, tblDepartments, tblJobs, tblTimeEvents } from "$lib/server/db/schema";
 import { createSchemaFactory } from "drizzle-zod";
 import { inArray, SQL, sql } from "drizzle-orm";
-import type { UserAccess } from "../../permission";
+import type { UserAccess } from "./permission";
 
 type TableOptionsType = typeof tblJobs | typeof tblDepartments | typeof tblTimeEvents | typeof tblRoles;
 type UpdatableFields = Partial<keyof Pick<TableOptionsType, "id" | "active" | "code" | "name" | "description" | "locked">>;

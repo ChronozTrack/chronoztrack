@@ -3,18 +3,18 @@
   import * as Table from '$ui/table/index';
   import { Button } from '$ui/button/index';
   import { Input } from '$ui/input/index';
+  import { Switch } from '$ui/switch/index';
   import Pencil from '@lucide/svelte/icons/pencil';
   import Trash from '@lucide/svelte/icons/trash'
   import PencilOff from '@lucide/svelte/icons/pencil-off'
   import Lock from '@lucide/svelte/icons/lock';
   import { DraftState } from '$lib/data-utils';
-  import SwitchInput from '$lib/components/switch-input.svelte';
 
   interface OptionsTableProps {
     table: string;
     options: AppPages;
     data: OptionsBaseTable[];
-    onDiscard: (refId: string) => void;
+    onDiscard: (refId: string | OptionsBaseTable) => void;
     onEdit: (data: OptionsBaseTable) => void;
     optionsDraft: DraftState<OptionsBaseTable>;
   }
@@ -25,7 +25,6 @@
     onDiscard,
     onEdit,
     optionsDraft,
-    table
   }: OptionsTableProps = $props();
 </script>
 
@@ -44,47 +43,42 @@
   <Table.Body>
     {#each data as row (row.id)}
       {@const modifiedEntries = optionsDraft.modifiedEntries}
-      {@const idx = modifiedEntries.findIndex((item) => item.id === row.id)}
-      {@const isEdit = idx >= 0 && optionsDraft.entity === table}
-      {@const inputName = (prefix: string) => `${table}[${idx}][${prefix}]`}
+      {@const mapKey = optionsDraft.keyMaps(row)}
+      {@const entry = modifiedEntries.get(mapKey)}
       <Table.Row
         class={[
           row.locked ? 'text-primary/75' : '',
           !row.active ? 'text-destructive' : '',
-          isEdit ? 'bg-primary/10' : '',
-          isEdit && !modifiedEntries[idx].active ? 'text-destructive' : ''
+          entry ? 'bg-primary/10' : '',
+          entry && !entry.active ? 'text-destructive' : ''
         ]}>
         <Table.Cell class="text-center">{row.id}</Table.Cell>
-        {#if isEdit}
-          <input type="hidden" name={inputName('id')} value={row.id} hidden />
+        {#if entry}
           <Table.Cell>
             <Input
-              name={inputName('code')}
               type="text"
-              bind:value={modifiedEntries[idx].code}
+              bind:value={entry.code}
               class="h-8 border-none"
               required />
           </Table.Cell>
           <Table.Cell>
             <Input
-              name={inputName('name')}
               type="text"
-              bind:value={modifiedEntries[idx].name}
+              bind:value={entry.name}
               class="h-8 border-none"
               required />
           </Table.Cell>
           <Table.Cell>
             <Input
-              name={inputName('description')}
               type="text"
-              bind:value={modifiedEntries[idx].description}
+              bind:value={entry.description}
               class="h-8 border-none" />
           </Table.Cell>
           <Table.Cell class="text-center">
-            <SwitchInput name={inputName('active')} bind:checked={modifiedEntries[idx].active} />
+            <Switch bind:checked={entry.active}/>
           </Table.Cell>
           <Table.Cell class="items-center text-center">
-            <Button variant="ghost" size="sm" onclick={() => onDiscard(modifiedEntries[idx].referenceId)}>
+            <Button variant="ghost" size="sm" onclick={() => onDiscard(entry)}>
               <Trash class="text-destructive" />
             </Button>
           </Table.Cell>
@@ -113,42 +107,37 @@
     {/each}
 
     {#if optionsDraft.actionState === 'create'}
-      {#each optionsDraft.newEntries as newRow, idx (newRow.id)}
-        {@const inputName = (prefix: string) => `${table}[${idx}][${prefix}]`}
+      {#each optionsDraft.newEntries as [mapKey, item] (mapKey)}
         <Table.Row class="bg-primary/10">
-          <input type="hidden" name={inputName('id')} value={newRow.id} />
           <Table.Cell class="text-center">-</Table.Cell>
           <Table.Cell>
             <Input
-              name={inputName('code')}
               type="text"
               placeholder="code"
-              bind:value={newRow.code}
+              bind:value={item.code}
               class="h-8 border-none"
               required />
           </Table.Cell>
           <Table.Cell>
             <Input
-              name={inputName('name')}
               type="text"
               placeholder="name"
-              bind:value={newRow.name}
+              bind:value={item.name}
               class="h-8 border-none"
               required />
           </Table.Cell>
           <Table.Cell>
             <Input
-              name={inputName('description')}
               type="text"
               placeholder="description"
-              bind:value={newRow.description}
+              bind:value={item.description}
               class="h-8 border-none" />
           </Table.Cell>
           <Table.Cell class="text-center">
-            <SwitchInput name={inputName('active')} bind:checked={newRow.active} />
+            <Switch bind:checked={item.active} />
           </Table.Cell>
           <Table.Cell class="items-center text-center">
-            <Button variant="ghost" size="sm" onclick={() => onDiscard(newRow.referenceId)}>
+            <Button variant="ghost" size="sm" onclick={() => onDiscard(item)}>
               <Trash />
             </Button>
           </Table.Cell>

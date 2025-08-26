@@ -26,7 +26,7 @@ export class TableDataState<T, K extends keyof T>{
   }
 
   #keyMaps(values: T){
-    return this.#idKeys.map(k => JSON.stringify(values[k])).join("|");
+    return this.#idKeys.map(k => JSON.stringify(values[k])).join(":");
   }
 
   public update(values: T | T[]): void {

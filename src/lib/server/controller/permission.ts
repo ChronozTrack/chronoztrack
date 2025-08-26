@@ -1,3 +1,4 @@
+import { getRequestEvent } from '$app/server';
 import type { UserAction, PermissionAction, User } from '$lib/app-types';
 import { pathnameToDots } from '$lib/utils';
 
@@ -79,4 +80,9 @@ export class UserAccess {
 	public canDelete(resource?: PermissionResource) {
 		return this.checkPermission('delete', resource);
 	}
+}
+
+export function getUserAccess(){
+	const {locals} = getRequestEvent();
+	return new UserAccess(locals.user)
 }
