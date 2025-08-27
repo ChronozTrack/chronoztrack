@@ -14,7 +14,7 @@ export class RolePermissionController<T extends typeof tblRolePermissions> {
 
   constructor(tbl: T, updateFields?: Partial<keyof Partial<TablePermissions>>[]) {
     this.#tbl = tbl;
-    this.#updatableFields = updateFields ? updateFields : ['canDelete', 'roleId', 'resourceId', 'canCreate', 'canRead', 'canUpdate'];
+    this.#updatableFields = updateFields ? updateFields : ['roleId', 'resourceId', 'canCreate', 'canRead', 'canUpdate', 'canDelete', 'locked'];
   }
 
   get client() {
@@ -49,6 +49,8 @@ export class RolePermissionController<T extends typeof tblRolePermissions> {
     if (validData.error) {
       return { error: validData.error };
     }
+
+    console.log(validData.data)
 
     return { rows: await this.#db.insert(this.#tbl).values(validData.data).returning() };
   }

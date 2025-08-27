@@ -26,7 +26,6 @@ async function handleRequest(
 	{ request }: { locals: App.Locals; request: Request }
 ) {
 	const parsedData = await parseRequest<SettingsOptions>(request);
-	console.log(parsedData)
 	const [resource, values] = Object.entries(parsedData)[0] as [
 		AppOptionsType,
 		Record<string, FormDataEntryValue>[]

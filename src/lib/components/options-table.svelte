@@ -37,7 +37,7 @@
 	<Table.Body>
 		{#each data as row (row.id)}
 			{@const modifiedEntries = optionsDraft.modifiedEntries}
-			{@const mapKey = optionsDraft.keyMaps(row)}
+			{@const mapKey = optionsDraft.getMapKey(row)}
 			{@const entry = modifiedEntries.get(mapKey)}
 			<Table.Row
 				class={[
@@ -126,7 +126,7 @@
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(mapKey)}>
-							<Trash />
+							<Trash class="text-destructive" />
 						</Button>
 					</Table.Cell>
 				</Table.Row>

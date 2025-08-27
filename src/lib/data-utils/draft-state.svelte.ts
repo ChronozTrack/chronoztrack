@@ -46,16 +46,20 @@ export class DraftState<T extends Record<string, unknown>> {
 		return (this.#newEntries.size || this.#modifiedEntries.size || this.#removedEntries.size) > 0
 	}
 
-	get currentEntries(){
-		if(this.#actionState === 'create'){
-			return this.#newEntries;
-		}else if(this.#actionState === 'update'){
-			return this.#modifiedEntries;
-		}else if(this.#actionState === 'delete'){
-			return this.#removedEntries;
+	get totalChanges(){
+		return this.#newEntries.size + this.#modifiedEntries.size + this.#removedEntries.size;
+	}
+
+	get currentTotal() {
+		if (this.#actionState === 'create') {
+			return this.#newEntries.size;
+		} else if (this.#actionState === 'update') {
+			return this.#modifiedEntries.size;
+		} else if (this.#actionState === 'delete') {
+			return this.#removedEntries.size;
 		}
 
-		return null
+		return 0;
 	}
 
 	set entity(value: string) {
@@ -72,10 +76,6 @@ export class DraftState<T extends Record<string, unknown>> {
 		} else {
 			this.#actionState = 'read';
 		}
-	}
-
-	public keyMaps(values: Partial<T>){
-		return this.#primaryKeys.map(k => JSON.stringify(values[k])).join(":");
 	}
 
 	#isRequiredMatch(overrides: Partial<T> = {}) {
@@ -121,43 +121,47 @@ export class DraftState<T extends Record<string, unknown>> {
 		}
 	}
 
-	public addEntry(overrides: Partial<T> = {}){
+	public getMapKey(values: Partial<T>) {
+		return this.#primaryKeys.map(k => JSON.stringify(values[k])).join(":");
+	}
+
+	public addEntry(overrides: Partial<T> = {}) {
 		this.#forceClearOtherEntries('create');
 		const draft = $state(this.#mergedDrafts(this.#initialValues, overrides));
-		const mapKey = this.#isKeysRequired ? this.keyMaps(draft) : customId();
+		const mapKey = this.#isKeysRequired ? this.getMapKey(draft) : customId();
 		this.#newEntries.set(mapKey, draft);
 		this.#setActionState();
 	}
 
-	public updateEntry(data: T, overrides: Partial<T> = {}){
+	public updateEntry(data: T, overrides: Partial<T> = {}) {
 		this.#forceClearOtherEntries('update');
 
-		const draft = $state({...structuredClone(data), ...overrides});
+		const draft = $state({ ...structuredClone(data), ...overrides });
 		this.#checkRequirements(draft);
-		this.#modifiedEntries.set(this.keyMaps(draft), draft);
+		this.#modifiedEntries.set(this.getMapKey(draft), draft);
 		this.#setActionState();
 	}
 
-	public deleteEntry(entry: T){
+	public deleteEntry(entry: T) {
 		this.#forceClearOtherEntries('delete');
 
 		this.#checkRequirements(entry);
-		this.#removedEntries.set(this.keyMaps(entry), entry);
+		this.#removedEntries.set(this.getMapKey(entry), entry);
 		this.#setActionState();
 	}
 
-	public discardEntry(refKey: string | Partial<T>){
-		const mapKey = typeof refKey === 'string' ? refKey : this.keyMaps(refKey);
-		if(this.#actionState === 'create' && this.#newEntries.has(mapKey)){
+	public discardEntry(refKey: string | Partial<T>) {
+		const mapKey = typeof refKey === 'string' ? refKey : this.getMapKey(refKey);
+		if (this.#actionState === 'create' && this.#newEntries.has(mapKey)) {
 			this.#newEntries.delete(mapKey);
-		}else if(this.#actionState === 'update' && this.#modifiedEntries.has(mapKey)){
+		} else if (this.#actionState === 'update' && this.#modifiedEntries.has(mapKey)) {
 			this.#modifiedEntries.delete(mapKey);
 		}
 
 		this.#setActionState();
 	}
 
-	public discardAllChanges(){
+	public discardAllChanges() {
 		this.#forceClearOtherEntries();
 		this.#setActionState();
 	}

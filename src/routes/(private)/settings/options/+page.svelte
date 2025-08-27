@@ -17,7 +17,7 @@
 	import { DIALOG_MESSAGES } from '$lib/defaults/app-defaults';
 	import { DraftState, TableDataState } from '$lib/data-utils';
 	import { slide } from 'svelte/transition';
-	import { applyAction, enhance } from '$app/forms';
+	import { applyAction } from '$app/forms';
 	import { tick } from 'svelte';
 
 	let { data }: PageProps = $props();
@@ -33,7 +33,6 @@
 		}
 	);
 
-	// const optionsData = new AppOptionsData(data.settingsOptions);
 	const optionsData: Record<AppOptionsType, TableDataState<OptionsBaseTable, 'id'>> = {
 		jobs: new TableDataState<OptionsBaseTable, 'id'>(data.settingsOptions?.jobs ?? [], ['id']),
 		roles: new TableDataState<OptionsBaseTable, 'id'>(data.settingsOptions?.roles ?? [], ['id']),
@@ -48,7 +47,7 @@
 	};
 
 	let isBusy = $state(false);
-	let postForm: HTMLFormElement | undefined = $state();
+	let formElem: HTMLFormElement | undefined = $state();
 	let pendingAction: DialogAction | null = $state(null);
 	let showDialog = $state(false);
 	let dialogAction: string = $state('Continue');
@@ -58,20 +57,24 @@
 		OPTIONS_TAB.filter((opt) => data.settingsOptions?.[opt.id].length > 0)
 	);
 	let activeTab: AppOptionsType = $derived(userOptions[0]?.id);
-	let formAction = $derived.by(() => {
+	let postForm = $derived.by(() => {
+		let temp: {
+			data: Map<string, OptionsBaseTable>;
+			action: string;
+			dataKeys: (keyof OptionsBaseTable)[];
+		} = {
+			data: new Map<string, OptionsBaseTable>(),
+			action: '',
+			dataKeys: ['id', 'code', 'name', 'active', 'description']
+		};
 		if (optionsDraft.actionState === 'create') {
-			return {
-				entries: optionsDraft.newEntries,
-				action: '?/create'
-			};
+			temp.data = optionsDraft.newEntries;
+			temp.action = '?/create';
 		} else if (optionsDraft.actionState === 'update') {
-			return {
-				entries: optionsDraft.modifiedEntries,
-				action: '?/update'
-			};
-		} else {
-			return null;
+			temp.data = optionsDraft.modifiedEntries;
+			temp.action = '?/update';
 		}
+		return temp;
 	});
 
 	function onEdit(data: OptionsBaseTable) {
@@ -98,8 +101,8 @@
 	async function onConfirm() {
 		showDialog = false;
 		await tick();
-		if (pendingAction === 'save' && postForm) {
-			postForm.requestSubmit();
+		if (pendingAction === 'save' && formElem) {
+			formElem.requestSubmit();
 		} else if (pendingAction === 'clear') {
 			optionsDraft.discardAllChanges();
 		}
@@ -126,17 +129,16 @@
 			isBusy = false;
 		};
 	};
-	$inspect(optionsData.jobs.data);
+
 </script>
 
-{#if formAction}
+{#if postForm.action.length > 0}
 	<PostActionForm
 		hidden
-		action={formAction.action}
-		data={formAction.entries}
 		table={optionsDraft.entity}
 		enhanceFunction={formSubmission}
-		bind:ref={postForm}
+		bind:ref={formElem}
+		{...postForm}
 	/>
 {/if}
 

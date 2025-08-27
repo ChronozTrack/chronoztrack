@@ -9,7 +9,6 @@ import { parseRequest } from '$lib/utils';
 
 const RESOURCE = 'role_permissions';
 const canView = (user: User | null) => new UserAccess(user).canView(RESOURCE);
-const canCreate = (user: User | null) => new UserAccess(user).canCreate(RESOURCE);
 
 export const load = (async () => {
   return { settingsPermissions: await getRolesResource() };
@@ -31,17 +30,14 @@ export const actions = {
       permissions: await clientRolePerms.select(roleId)
     };
   },
-  'create-permissions': async (event) => {
-    await handleRequest('create', event)
-    return {};
+  'create': async (event) => {
+    return await handleRequest('create', event)
   },
-  'update-permissions': async (event) => {
-    await handleRequest('update', event);
-    return {};
+  'update': async (event) => {
+    return await handleRequest('update', event);
   },
-  'delete-permissions': async(event) => {
-    await handleRequest('delete', event);
-    return {}
+  'delete': async(event) => {
+    return await handleRequest('delete', event);
   }
 } satisfies Actions;
 
@@ -64,8 +60,8 @@ async function handleRequest(action: UserAction, { request }: { locals: App.Loca
   }
 
   if(!getUserAccess().checkPermission(action, RESOURCE)){
-    return fail(401, { message: 'Unauthorized' })
+    return fail(401, { message: `Unauthorized: User can't ${action} ${RESOURCE}` })
   }
 
-  console.log(permData)
+  return await clientRolePerms.create(permData)
 }

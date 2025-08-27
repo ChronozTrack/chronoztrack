@@ -20,12 +20,20 @@ export class TableDataState<T, K extends keyof T>{
     return arr;
   }
 
+  get size(): number{
+    return this.#map.size;
+  }
+
+  get rawMap(){
+    return this.#map;
+  }
+
   set data(val: T[]){
     this.#map.clear();
     this.update(val)
   }
 
-  #keyMaps(values: T){
+  #keyMaps(values: Partial<T>){
     return this.#idKeys.map(k => JSON.stringify(values[k])).join(":");
   }
 
@@ -39,7 +47,7 @@ export class TableDataState<T, K extends keyof T>{
   }
 
   public getById(idObj: Pick<T, K>): T | undefined {
-    return this.#map.get(this.#idKeys.map(k => JSON.stringify(idObj[k])).join("|"));
+    return this.#map.get(this.#idKeys.map(k => JSON.stringify(idObj[k])).join(":"));
   }
 
   public remove(values: T | T[]): void {
@@ -49,7 +57,7 @@ export class TableDataState<T, K extends keyof T>{
     }
   }
 
-  public has(values: T): boolean {
+  public has(values: Partial<T>): boolean {
     return this.#map.has(this.#keyMaps(values));
   }
 
