@@ -43,14 +43,12 @@ export class RolePermissionController<T extends typeof tblRolePermissions> {
 
   public async create(formData: Record<string, FormDataEntryValue>[]):
     Promise<{ rows: T['$inferSelect'][]; error?: never } | { rows?: never; error: ZodError<T["$inferInsert"][]> }> {
-    const permissions = formData.map(item => Object.assign(item, ...this.#defaultActions));
+    const permissions = formData.map(item => Object.assign({...this.#defaultActions}, item));
     const validData = this.validateInsertData(permissions);
 
     if (validData.error) {
       return { error: validData.error };
     }
-
-    console.log(validData.data)
 
     return { rows: await this.#db.insert(this.#tbl).values(validData.data).returning() };
   }

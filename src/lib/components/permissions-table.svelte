@@ -2,10 +2,11 @@
 	import type { TablePermissions, TableResources, TableRoles } from '$lib/app-types';
 	import * as Table from '$ui/table/index';
 	import { Button } from '$ui/button/index';
-	import SwitchInput from '$lib/components/switch-input.svelte';
+	import { Switch } from '$ui/switch/index';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Lock from '@lucide/svelte/icons/lock';
 	import Delete from '@lucide/svelte/icons/delete';
+	import Trash from '@lucide/svelte/icons/trash';
 	import type { DraftState } from '$lib/data-utils';
 
 	interface PermTableProps {
@@ -15,10 +16,11 @@
 		permDraft: DraftState<TablePermissions>;
 		onDelete: (permission: TablePermissions) => void;
 		onEdit: (permissions: TablePermissions) => void;
+		onDiscard: (refId: string | TablePermissions) => void;
 	}
 
-	const TABLE = 'role_permissions';
-	let { role, resources, permissions, onDelete, onEdit }: PermTableProps = $props();
+	let { role, resources, permDraft, permissions, onDelete, onEdit, onDiscard }: PermTableProps =
+		$props();
 </script>
 
 <Table.Root>
@@ -36,34 +38,30 @@
 	</Table.Header>
 	<Table.Body>
 		{#if role}
-			{#each permissions as perm, idx (perm.resourceId)}
+			{#each permissions as perm (perm.resourceId)}
 				{@const resource = resources.find((res) => res.id === perm.resourceId)}
-				{@const inputName = (prefix: string) => `${TABLE}[${idx}][${prefix}]`}
-				{@const isEdit = false}
-				<Table.Row class={[perm.locked ? 'text-primary/75' : '', isEdit ? 'bg-primary/10' : '']}>
-					<Table.Cell>{resource?.name ?? 'Resource'}</Table.Cell>
+				{@const mapKey = permDraft.getMapKey(perm)}
+				{@const editEntry = permDraft.modifiedEntries.get(mapKey)}
+				<Table.Row class={[perm.locked ? 'text-primary/75' : '']}>
+					<Table.Cell class={[editEntry ? 'border-l-2 border-destructive' : '']}>{resource?.name ?? 'Resource'}</Table.Cell>
 					<Table.Cell>{resource?.description ?? 'Description'}</Table.Cell>
-					{#if isEdit}
+					{#if editEntry}
 						<Table.Cell class="text-center">
-							<SwitchInput
-								name={inputName('canCreate')}
-								bind:checked={perm.canCreate}
-								disabled={perm.locked} />
+							<Switch bind:checked={editEntry.canCreate} />
 						</Table.Cell>
 						<Table.Cell class="text-center">
-							<SwitchInput
-								name={inputName('canRead')}
-								bind:checked={perm.canRead}
-								disabled={perm.locked} />
+							<Switch bind:checked={editEntry.canRead} />
 						</Table.Cell>
 						<Table.Cell class="text-center">
-							<SwitchInput
-								name={inputName('canUpdate')}
-								bind:checked={perm.canUpdate}
-								disabled={perm.locked} />
+							<Switch bind:checked={editEntry.canUpdate} />
 						</Table.Cell>
 						<Table.Cell class="text-center">
-							<SwitchInput name={inputName('canDelete')} bind:checked={perm.canDelete} disabled />
+							<Switch bind:checked={editEntry.canDelete} disabled/>
+						</Table.Cell>
+						<Table.Cell class="text-center">
+							<Button variant="ghost" size="sm" onclick={() => onDiscard(mapKey)}>
+								<Trash class="text-destructive" />
+							</Button>
 						</Table.Cell>
 					{:else}
 						<Table.Cell class={['text-center', perm.canCreate ? '' : 'text-destructive']}
@@ -84,7 +82,8 @@
 							{:else}
 								<Button variant="ghost" size="sm" onclick={() => onEdit(perm)}><Pencil /></Button>
 								<Button variant="ghost" size="sm" onclick={() => onDelete(perm)}
-									><Delete class="text-destructive" /></Button>
+									><Delete class="text-destructive" /></Button
+								>
 							{/if}
 						</Table.Cell>
 					{/if}

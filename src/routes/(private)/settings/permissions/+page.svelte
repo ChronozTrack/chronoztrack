@@ -133,6 +133,10 @@
 		permDraft.updateEntry(entry);
 	}
 
+	function onDiscard(refId: string | TablePermissions) {
+		permDraft.discardEntry(refId);
+	}
+
 	function onClear() {
 		permDraft.discardAllChanges();
 	}
@@ -168,7 +172,7 @@
 {#if postForm.data.size}
 	<PostActionForm
 		hidden
-		table={permDraft.entity}
+		table="role_permissions"
 		enhanceFunction={onPostPermissions}
 		bind:ref={addFormElem}
 		{...postForm}
@@ -315,6 +319,7 @@
 						{permDraft}
 						{onDelete}
 						{onEdit}
+						{onDiscard}
 					/>
 				</div>
 			</div>

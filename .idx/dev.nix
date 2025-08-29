@@ -17,8 +17,7 @@
       "enkia.tokyo-night"
       "Selemondev.vscode-shadcn-svelte"
       "svelte.svelte-vscode"
-      "bradlc.vscode-tailwindcss"
-      "vscodevim"
+      "seatonjiang.gitmoji-vscode"
     ];
     # Enable previews
     previews = {

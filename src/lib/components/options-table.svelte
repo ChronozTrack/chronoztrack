@@ -43,11 +43,10 @@
 				class={[
 					row.locked ? 'text-primary/75' : '',
 					!row.active ? 'text-destructive' : '',
-					entry ? 'bg-primary/10' : '',
 					entry && !entry.active ? 'text-destructive' : ''
 				]}
 			>
-				<Table.Cell class="text-center">{row.id}</Table.Cell>
+				<Table.Cell class={["text-center", entry ? 'border-l-2 border-destructive' : '']}>{row.id}</Table.Cell>
 				{#if entry}
 					<Table.Cell>
 						<Input type="text" bind:value={entry.code} class="h-8 border-none" required />
@@ -94,7 +93,7 @@
 		{#if optionsDraft.actionState === 'create'}
 			{#each optionsDraft.newEntries as [mapKey, item] (mapKey)}
 				<Table.Row class="bg-primary/10">
-					<Table.Cell class="text-center">-</Table.Cell>
+					<Table.Cell class="text-center border-l-2 border-destructive">-</Table.Cell>
 					<Table.Cell>
 						<Input
 							type="text"

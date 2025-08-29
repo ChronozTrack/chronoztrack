@@ -53,6 +53,7 @@ async function getRolesResource() {
 
 async function handleRequest(action: UserAction, { request }: { locals: App.Locals; request: Request }) {
   const parsedData = await parseRequest<Record<string, TablePermissions[]>>(request)
+  console.log(parsedData)
   const permData = parsedData['role_permissions']
 
   if(!permData){
