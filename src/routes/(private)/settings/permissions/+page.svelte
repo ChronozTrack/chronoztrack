@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import type { TablePermissions } from '$lib/app-types';
+	import type { DialogAction, TablePermissions } from '$lib/app-types';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import BusyIcon from '$lib/components/busy-icon.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -18,14 +18,19 @@
 	import { DraftState, TableDataState } from '$lib/data-utils';
 	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
-	import { DEFAULT_RESOURCES } from '$lib/defaults/app-defaults';
+	import { DEFAULT_RESOURCES, getDialoMessage } from '$lib/defaults/app-defaults';
+	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
 
 	let { data }: PageProps = $props();
 	let resFormOpen = $state(false);
 	let roleFormElem: HTMLFormElement | undefined = $state();
-	let addFormElem: HTMLFormElement | undefined = $state();
+	let permFormElem: HTMLFormElement | undefined = $state();
 	let activeRoleId: string = $state('');
 	let isBusy = $state(false);
+	let pendingAction: DialogAction | null = $state(null);
+	let showDialog = $state(false);
+	let dialogAction: string = $state('Continue');
+	let dialogDescription: string = $state('Are you sure you want to proceed?');
 	let selectedRole = $derived(
 		data.settingsPermissions.roles.find((role) => role.id === Number(activeRoleId))
 	);
@@ -54,23 +59,13 @@
 		if (permDraft.actionState === 'create') {
 			temp.data = permDraft.newEntries;
 			temp.action = '?/create';
-			temp.dataKeys = [
-				'roleId',
-				'resourceId',
-				'canCreate',
-				'canRead',
-				'canUpdate',
-				'canDelete',
-				'locked'
-			];
 		} else if (permDraft.actionState === 'update') {
 			temp.data = permDraft.modifiedEntries;
 			temp.action = '?/update';
-			temp.dataKeys = ['roleId', 'resourceId', 'canCreate', 'canRead', 'canUpdate', 'canDelete'];
 		} else if (permDraft.actionState === 'delete') {
 			temp.data = permDraft.removedEnries;
 			temp.action = '?/delete';
-			temp.dataKeys = ['roleId', 'resourceId'];
+			temp.dataKeys = ['roleId', 'resourceId', 'locked'];
 		}
 		return temp;
 	});
@@ -100,9 +95,14 @@
 				if (error) {
 					console.error(error);
 				} else {
-					permData.update(rows);
-					permDraft.discardAllChanges();
+					if (permDraft.actionState === 'delete') {
+						console.log(rows);
+						permData.remove(rows);
+					} else {
+						permData.update(rows);
+					}
 
+					permDraft.discardAllChanges();
 					resFormOpen = false;
 				}
 			} else if (result.type === 'error') {
@@ -121,12 +121,13 @@
 
 	async function addRoles() {
 		await tick();
-		addFormElem?.requestSubmit();
+		permFormElem?.requestSubmit();
 	}
 
 	async function onDelete(permission: TablePermissions) {
 		permDraft.deleteEntry(permission);
 		await tick();
+		onPendingAction('delete');
 	}
 
 	function onEdit(entry: TablePermissions) {
@@ -135,10 +136,6 @@
 
 	function onDiscard(refId: string | TablePermissions) {
 		permDraft.discardEntry(refId);
-	}
-
-	function onClear() {
-		permDraft.discardAllChanges();
 	}
 
 	function onOpenChange(open: boolean) {
@@ -167,29 +164,46 @@
 		});
 		resFormOpen = true;
 	}
+
+	function onPendingAction(action: DialogAction) {
+		pendingAction = action;
+		dialogDescription = getDialoMessage('role_permissions', action) ?? dialogDescription;
+		dialogAction = String(action); //
+		showDialog = true;
+	}
+
+	async function onConfirm() {
+		showDialog = false;
+		await tick();
+		if ((pendingAction === 'save' || pendingAction === 'delete') && permFormElem) {
+			permFormElem.requestSubmit();
+		} else if (pendingAction === 'clear') {
+			permDraft.discardAllChanges();
+		}
+
+		pendingAction = null;
+	}
 </script>
+
+<DialogConfirm
+	bind:open={showDialog}
+	description={dialogDescription}
+	action={dialogAction}
+	{onConfirm}
+/>
 
 {#if postForm.data.size}
 	<PostActionForm
 		hidden
 		table="role_permissions"
 		enhanceFunction={onPostPermissions}
-		bind:ref={addFormElem}
+		bind:ref={permFormElem}
 		{...postForm}
 	/>
 {/if}
 
-{#await data.settingsPermissions}
-	<div class="w-full max-w-2xl space-y-4 md:max-w-4xl">
-		<Skeleton class="h-9" />
-		<div class="space-y-2 rounded-lg border p-2">
-			<Skeleton class="h-9" />
-			<Skeleton class="h-9" />
-			<Skeleton class="h-9" />
-			<Skeleton class="h-9" />
-		</div>
-	</div>
-{:then { resources, roles }}
+{#if data.settingsPermissions}
+	{@const { roles, resources } = data.settingsPermissions}
 	<div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
 		<div class="flex-col justify-start gap-4">
 			<div class="flex items-center justify-between">
@@ -221,7 +235,10 @@
 												<Table.Row>
 													<Table.Cell>
 														{#if hasResource || isDefault}
-															<Checkbox disabled={hasResource || isDefault} checked={hasResource || isDefault} />
+															<Checkbox
+																disabled={hasResource || isDefault}
+																checked={hasResource || isDefault}
+															/>
 														{:else}
 															<Checkbox
 																onCheckedChange={(checked) => onChange(checked, resource.id)}
@@ -278,7 +295,12 @@
 				</form>
 				<div class="flex items-center gap-2">
 					{#if selectedRole}
-						<Button variant="outline" size="sm" disabled={!permDraft.hasChanges || isBusy}>
+						<Button
+							variant="outline"
+							size="sm"
+							disabled={!permDraft.hasChanges || isBusy}
+							onclick={() => onPendingAction('save')}
+						>
 							<BusyIcon {isBusy}><Save /></BusyIcon>
 							<span class="hidden md:inline">Save</span>
 							{#if permDraft.currentTotal}
@@ -293,7 +315,7 @@
 							variant="outline"
 							size="sm"
 							disabled={!permDraft.hasChanges || isBusy}
-							onclick={onClear}
+							onclick={() => onPendingAction('clear')}
 						>
 							<BusyIcon {isBusy}><Trash class="text-destructive" /></BusyIcon>
 							<span class="hidden md:inline">Clear</span>
@@ -325,6 +347,14 @@
 			</div>
 		</div>
 	</div>
-{:catch}
-	<h1>Server Error</h1>
-{/await}
+{:else}
+	<div class="w-full max-w-2xl space-y-4 md:max-w-4xl">
+		<Skeleton class="h-9" />
+		<div class="space-y-2 rounded-lg border p-2">
+			<Skeleton class="h-9" />
+			<Skeleton class="h-9" />
+			<Skeleton class="h-9" />
+			<Skeleton class="h-9" />
+		</div>
+	</div>
+{/if}

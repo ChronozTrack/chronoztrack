@@ -2,8 +2,7 @@ import { customId } from '$lib/utils';
 import type { UserAction } from '$lib/app-types';
 import { SvelteMap } from 'svelte/reactivity';
 
-type DraftDataKeys<T> = { primary: (keyof T)[], isRequired?: boolean };
-type WithReferenceId<T> = T & { referenceId: string };
+type DraftDataKeys<T> = { primary: (keyof T)[]; isRequired?: boolean };
 
 export class DraftState<T extends Record<string, unknown>> {
 	#entity: string = $state('');
@@ -43,10 +42,10 @@ export class DraftState<T extends Record<string, unknown>> {
 	}
 
 	get hasChanges() {
-		return (this.#newEntries.size || this.#modifiedEntries.size || this.#removedEntries.size) > 0
+		return (this.#newEntries.size || this.#modifiedEntries.size || this.#removedEntries.size) > 0;
 	}
 
-	get totalChanges(){
+	get totalChanges() {
 		return this.#newEntries.size + this.#modifiedEntries.size + this.#removedEntries.size;
 	}
 
@@ -122,7 +121,7 @@ export class DraftState<T extends Record<string, unknown>> {
 	}
 
 	public getMapKey(values: Partial<T>) {
-		return this.#primaryKeys.map(k => JSON.stringify(values[k])).join(":");
+		return this.#primaryKeys.map((k) => JSON.stringify(values[k])).join(':');
 	}
 
 	public addEntry(overrides: Partial<T> = {}) {
@@ -166,3 +165,4 @@ export class DraftState<T extends Record<string, unknown>> {
 		this.#setActionState();
 	}
 }
+

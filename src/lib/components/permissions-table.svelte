@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { TablePermissions, TableResources, TableRoles } from '$lib/app-types';
 	import * as Table from '$ui/table/index';
+	import * as DropdownMenu from '$ui/dropdown-menu/index';
 	import { Button } from '$ui/button/index';
 	import { Switch } from '$ui/switch/index';
-	import Pencil from '@lucide/svelte/icons/pencil';
 	import Lock from '@lucide/svelte/icons/lock';
-	import Delete from '@lucide/svelte/icons/delete';
+	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
 	import Trash from '@lucide/svelte/icons/trash';
 	import type { DraftState } from '$lib/data-utils';
 
@@ -19,8 +19,7 @@
 		onDiscard: (refId: string | TablePermissions) => void;
 	}
 
-	let { role, resources, permDraft, permissions, onDelete, onEdit, onDiscard }: PermTableProps =
-		$props();
+	let { role, resources, permDraft, permissions, onDelete }: PermTableProps = $props();
 </script>
 
 <Table.Root>
@@ -43,7 +42,9 @@
 				{@const mapKey = permDraft.getMapKey(perm)}
 				{@const editEntry = permDraft.modifiedEntries.get(mapKey)}
 				<Table.Row class={[perm.locked ? 'text-primary/75' : '']}>
-					<Table.Cell class={[editEntry ? 'border-l-2 border-destructive' : '']}>{resource?.name ?? 'Resource'}</Table.Cell>
+					<Table.Cell class={[editEntry ? 'border-l-2 border-destructive' : '']}
+						>{resource?.name ?? 'Resource'}</Table.Cell
+					>
 					<Table.Cell>{resource?.description ?? 'Description'}</Table.Cell>
 					{#if editEntry}
 						<Table.Cell class="text-center">
@@ -56,10 +57,10 @@
 							<Switch bind:checked={editEntry.canUpdate} />
 						</Table.Cell>
 						<Table.Cell class="text-center">
-							<Switch bind:checked={editEntry.canDelete} disabled/>
+							<Switch bind:checked={editEntry.canDelete} disabled />
 						</Table.Cell>
 						<Table.Cell class="text-center">
-							<Button variant="ghost" size="sm" onclick={() => onDiscard(mapKey)}>
+							<Button variant="ghost" size="sm" onclick={() => permDraft.discardEntry(mapKey)}>
 								<Trash class="text-destructive" />
 							</Button>
 						</Table.Cell>
@@ -78,12 +79,33 @@
 						</Table.Cell>
 						<Table.Cell class="flex justify-center">
 							{#if perm.locked}
-								<Lock size={16} />
-							{:else}
-								<Button variant="ghost" size="sm" onclick={() => onEdit(perm)}><Pencil /></Button>
-								<Button variant="ghost" size="sm" onclick={() => onDelete(perm)}
-									><Delete class="text-destructive" /></Button
+								<span
+									class="flex size-8 items-center justify-center text-muted-foreground data-[state=open]:bg-muted"
 								>
+									<Lock size={16} />
+								</span>
+							{:else}
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger
+										class="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
+									>
+										{#snippet child({ props })}
+											<Button variant="ghost" size="sm" {...props}>
+												<EllipsisVertical />
+												<span class="sr-only">Open menu</span>
+											</Button>
+										{/snippet}
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content align="end" class="w-32">
+										<DropdownMenu.Item onSelect={() => permDraft.updateEntry(perm)}>
+											Edit</DropdownMenu.Item
+										>
+										<DropdownMenu.Separator />
+										<DropdownMenu.Item onSelect={() => onDelete(perm)} variant="destructive"
+											>Delete</DropdownMenu.Item
+										>
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
 							{/if}
 						</Table.Cell>
 					{/if}

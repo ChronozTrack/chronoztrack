@@ -5,7 +5,7 @@
 	import { Input } from '$ui/input/index';
 	import { Switch } from '$ui/switch/index';
 	import Pencil from '@lucide/svelte/icons/pencil';
-	import Trash from '@lucide/svelte/icons/trash';
+	import X from '@lucide/svelte/icons/x';
 	import PencilOff from '@lucide/svelte/icons/pencil-off';
 	import Lock from '@lucide/svelte/icons/lock';
 	import { DraftState } from '$lib/data-utils';
@@ -46,7 +46,9 @@
 					entry && !entry.active ? 'text-destructive' : ''
 				]}
 			>
-				<Table.Cell class={["text-center", entry ? 'border-l-2 border-destructive' : '']}>{row.id}</Table.Cell>
+				<Table.Cell class={['text-center', entry ? 'border-l-2 border-destructive' : '']}
+					>{row.id}</Table.Cell
+				>
 				{#if entry}
 					<Table.Cell>
 						<Input type="text" bind:value={entry.code} class="h-8 border-none" required />
@@ -62,7 +64,7 @@
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(mapKey)}>
-							<Trash class="text-destructive" />
+							<X class="text-destructive" />
 						</Button>
 					</Table.Cell>
 				{:else}
@@ -93,7 +95,7 @@
 		{#if optionsDraft.actionState === 'create'}
 			{#each optionsDraft.newEntries as [mapKey, item] (mapKey)}
 				<Table.Row class="bg-primary/10">
-					<Table.Cell class="text-center border-l-2 border-destructive">-</Table.Cell>
+					<Table.Cell class="border-l-2 border-destructive text-center">-</Table.Cell>
 					<Table.Cell>
 						<Input
 							type="text"
@@ -125,7 +127,7 @@
 					</Table.Cell>
 					<Table.Cell class="items-center text-center">
 						<Button variant="ghost" size="sm" onclick={() => onDiscard(mapKey)}>
-							<Trash class="text-destructive" />
+							<X class="text-destructive" />
 						</Button>
 					</Table.Cell>
 				</Table.Row>
