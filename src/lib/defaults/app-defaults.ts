@@ -9,6 +9,7 @@ export const APP_RESOURCES = [
 	'register',
 	'role_permissions'
 ] as const;
+
 export const APP_TABLES = [
 	'users',
 	'resources',
@@ -18,8 +19,11 @@ export const APP_TABLES = [
 	'roles',
 	'time_events'
 ] as const;
+
 export const USER_ACTION = ['create', 'read', 'update', 'delete'] as const;
 export const APP_OPTIONS = ['jobs', 'departments', 'roles', 'time_events'] as const;
+export const DEFAULT_ADMINS = [1, 2];
+export const DEFAULT_ROLES = [1, 2, 3];
 
 //DEFAULT USER ACCESS [profile, user, time_entries, timesheets]
 export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId'>[] = [

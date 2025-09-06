@@ -1,4 +1,4 @@
-import type { UserPreferences } from "$lib/app-types"
+import type { ScheduleTemplates, UserPreferences, UserTimeEventSchedules } from "$lib/app-types"
 import { sql } from "drizzle-orm";
 import { sqliteTable, integer, text, primaryKey, foreignKey, index, type AnySQLiteColumn, unique } from "drizzle-orm/sqlite-core";
 
@@ -97,7 +97,7 @@ export const tblUserDesignation = sqliteTable("user_designations", {
   jobId: integer().references(() => tblJobs.id),
   createdAt: text().default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
-  unique().on(table.userId, table.departmentId, table.jobId),
+  unique().on(table.userId, table.departmentId),
   index("user_designations_user_active_idx").on(table.userId, table.active),
   index("user_designation_user_dept_idx").on(table.departmentId, table.active),
   index("user_designation_user_job_idx").on(table.jobId, table.active)
@@ -111,18 +111,34 @@ export const tblSessions = sqliteTable("sessions", {
   index("sessions_user_idx").on(table.userId)
 ]);
 
-export const tblSchedules = sqliteTable("schedules", {
+export const tblUserSchedule = sqliteTable("user_schedules", {
   id: integer().primaryKey(),
   userId: integer().references(() => tblUsers.id, { onDelete: "cascade" }),
   startDate: text().default(sql`CURRENT_DATE`).notNull(),
   userTimezone: text().default('Asia/Manila').notNull(),
   clientTimezone: text().default('Asia/Manila').notNull(),
-  timeEventId: integer().references(() => tblTimeEvents.id, { onDelete: "cascade" }),
-  startTime: text().default('00:00').notNull(),
-  endTime: text().default('00:00').notNull(),
-  description: text()
+  clockIn: text().default('00:00').notNull(),
+  clockOut: text().default('09:00').notNull(),
+  description: text(),
+  events: text({ mode: "json" }).notNull().default('[]').$type<UserTimeEventSchedules[]>(),
 },
   (table) => [
     index("schedules_user_date_idx").on(table.userId, table.startDate)
   ]
 );
+
+export const tblTemplates = sqliteTable("templates", {
+  id: integer().primaryKey(),
+  departmentId: integer().references(() => tblDepartments.id, { onDelete: "cascade" }),
+  jobId: integer().references(() => tblJobs.id, { onDelete: "cascade" }),
+  name: text().notNull(),
+  description: text(),
+  template: text({ mode: 'json' }).notNull().$type<ScheduleTemplates>(),
+  createdAt: text().default(sql`CURRENT_TIMESTAMP`).notNull(),
+},
+  (table) => [
+    unique().on(table.departmentId, table.jobId, table.name),
+    index("templates_department_idx").on(table.departmentId),
+    index("templates_job_idx").on(table.jobId),
+  ]
+)

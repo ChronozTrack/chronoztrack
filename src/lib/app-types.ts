@@ -1,4 +1,4 @@
-import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRoles, tblSchedules, tblTimeEvents, tblUserDesignation, tblUsers } from "./server/db/schema";
+import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRoles, tblUserSchedule, tblTimeEvents, tblUserDesignation, tblUsers } from "./server/db/schema";
 import { APP_OPTIONS, APP_TABLES, USER_ACTION } from "$lib/defaults/app-defaults"
 import { Component } from "@lucide/svelte";
 
@@ -16,7 +16,7 @@ export interface SettingsOptions extends Record<string, OptionsBaseTable[]> {
 
 export type TableUsers = typeof tblUsers.$inferSelect;
 export type TableResources = typeof tblResources.$inferSelect;
-export type TableSchedules = typeof tblSchedules.$inferSelect;
+export type TableSchedules = typeof tblUserSchedule.$inferSelect;
 export type TablePermissions = typeof tblRolePermissions.$inferSelect;
 export type TableDesignations = typeof tblUserDesignation.$inferSelect;
 export type UserAction = typeof USER_ACTION[number];
@@ -27,6 +27,21 @@ export interface UserPreferences {
   background: string | null;
   avatar: string | null;
   theme: "dark" | "light" | "system"
+}
+
+export interface UserTimeEventSchedules {
+  timeEvent: string;
+  startTime: string;
+  endTime: string;
+  description: string;
+}
+
+export interface ScheduleTemplates {
+  userTimezone: string;
+  clientTimezone: string;
+  clockIn: string;
+  clockOut: string;
+  events: UserTimeEventSchedules[];
 }
 
 export type UserDesignation = TableDesignations & {
@@ -42,11 +57,16 @@ export type Permissions = {
   };
 }
 
-export interface User extends Pick<TableUsers, 'id' | 'active' | 'name' | 'preferences'> {
-  role: Pick<TableRoles, 'id' | 'code' | 'name'>;
+type UserCore = Pick<typeof tblUsers.$inferSelect, 'id' | 'active' | 'name' | 'preferences'>;
+type RoleCore = Pick<typeof tblRoles.$inferSelect, 'id' | 'code' | 'name'>;
+type JobCore = Pick<typeof tblJobs.$inferSelect, 'id' | 'code' | 'name'>;
+export type DepartmentCore = Pick<typeof tblDepartments.$inferSelect, 'id' | 'code' | 'name'>;
+
+export interface User extends UserCore {
+  role: RoleCore;
   designations: null | {
-    job: Pick<TableJobs, 'id' | 'name'> | null;
-    department: Pick<TableDepartments, 'id' | 'name'> | null;
+    job: JobCore | null;
+    department: DepartmentCore | null;
   }[];
   permissions: Permissions;
 }

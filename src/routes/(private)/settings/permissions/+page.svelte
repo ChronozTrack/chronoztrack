@@ -32,7 +32,7 @@
 	let dialogAction: string = $state('Continue');
 	let dialogDescription: string = $state('Are you sure you want to proceed?');
 	let selectedRole = $derived(
-		data.settingsPermissions.roles.find((role) => role.id === Number(activeRoleId))
+		data.settingsPermissions?.roles.find((role) => role.id === Number(activeRoleId))
 	);
 
 	const permDraft = new DraftState<TablePermissions>(

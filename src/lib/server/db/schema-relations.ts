@@ -7,7 +7,7 @@ import {
   tblSessions,
   tblDepartments,
   tblJobs,
-  tblSchedules,
+  tblUserSchedule,
   tblUserDesignation
 } from "./schema";
 
@@ -24,7 +24,7 @@ export const rltsUser = relations(tblUsers, ({ many, one }) => {
     permissions: many(tblRolePermissions),
     designations: many(tblUserDesignation),
     sessions: many(tblSessions),
-    schedules: many(tblSchedules),
+    schedules: many(tblUserSchedule),
   }
 })
 
@@ -67,10 +67,10 @@ export const rltUserDesignation = relations(tblUserDesignation, ({ one }) => {
   }
 })
 
-export const rltsSchedules = relations(tblSchedules, ({ one }) => {
+export const rltsSchedules = relations(tblUserSchedule, ({ one }) => {
   return {
     user: one(tblUsers, {
-      fields: [tblSchedules.userId],
+      fields: [tblUserSchedule.userId],
       references: [tblUsers.id]
     }),
   }

@@ -1,6 +1,6 @@
 import { getRequestEvent } from '$app/server';
 import type { UserAction, PermissionAction, User } from '$lib/app-types';
-import { pathnameToDots } from '$lib/utils';
+import { pathnameToResource } from '$lib/utils';
 
 export type PermissionResource = string | string[] | URL;
 
@@ -39,7 +39,7 @@ export class UserAccess {
 		}
 
 		if (val instanceof URL) {
-			const parsed = pathnameToDots(val.pathname);
+			const parsed = pathnameToResource(val.pathname);
 
 			return parsed ? [parsed] : [];
 		}

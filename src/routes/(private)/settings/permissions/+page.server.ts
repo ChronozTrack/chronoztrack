@@ -10,7 +10,11 @@ import { parseRequest } from '$lib/utils';
 const RESOURCE = 'role_permissions';
 const canView = (user: User | null) => new UserAccess(user).canView(RESOURCE);
 
-export const load = (async () => {
+export const load = (async ({locals}) => {
+	if(locals.user?.role.id !== 1){
+		return fail(403, { message: 'Forbidden' });
+	}
+	
 	return { settingsPermissions: await getRolesResource() };
 }) satisfies PageServerLoad;
 

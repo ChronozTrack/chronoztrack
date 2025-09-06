@@ -69,10 +69,10 @@ class SessionController {
               columns: {},
               with: {
                 department: {
-                  columns: { id: true, name: true }
+                  columns: { id: true, code: true, name: true }
                 },
                 job: {
-                  columns: { id: true, name: true }
+                  columns: { id: true, code: true, name: true }
                 }
               }
             },

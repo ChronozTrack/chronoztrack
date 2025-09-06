@@ -14,6 +14,8 @@ import Timer from '@lucide/svelte/icons/timer';
 import FileCog from '@lucide/svelte/icons/file-cog';
 import Tags from '@lucide/svelte/icons/tags';
 import ShieldCheck from '@lucide/svelte/icons/shield-check';
+import UserPlus from '@lucide/svelte/icons/user-plus'
+import BookDashed from '@lucide/svelte/icons/book-dashed';
 
 export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
   {
@@ -105,18 +107,28 @@ export const APP_PAGES: AppPages[] = [
     icon: FileClock,
     id: 'timesheets'
   },
+]
+
+export const ADMIN_PAGES: AppPages[] = [
   {
-    resource: "users",
-    href: "/users",
-    title: "Users",
+    resource: 'admin.users',
+    href: '/admin/users',
+    title: 'Users',
     icon: Users,
-    id: 'users',
+    id: 'users'
   },
   {
-    resource: 'schedules',
-    href: "/schedules",
-    title: "Schedules",
-    icon: CalendarClock,
+    resource: 'admin.templates',
+    href: "/admin/templates",
+    title: "Templates",
+    icon: BookDashed,
     id: 'schedules'
+  },
+  {
+    resource: 'admin.register',
+    href: "/admin/register",
+    title: "Register",
+    icon: UserPlus,
+    id: 'register'
   },
 ]

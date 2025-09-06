@@ -7,7 +7,7 @@
   import AppSidebar from '$lib/components/app-sidebar.svelte';
   import ToggleMode from '$lib/components/toggle-mode.svelte';
   import { ModeWatcher } from 'mode-watcher';
-  import { APP_PAGES, SETTING_PAGES } from '$lib/defaults/menus';
+  import { ADMIN_PAGES, APP_PAGES, SETTING_PAGES } from '$lib/defaults/menus';
   import { page } from '$app/state';
 
   let { data, children }: LayoutProps = $props();
@@ -15,8 +15,9 @@
   const permissions = new Set(Object.keys(data.user?.permissions ?? {}));
   const userRoutes = APP_PAGES.filter((route) => permissions.has(route.resource));
   const settingRoutes = SETTING_PAGES.filter((route) => permissions.has(route.resource));
+  const adminRoutes = ADMIN_PAGES.filter((route) => permissions.has(route.resource))
   const currentRoute = $derived(
-    [...userRoutes, ...settingRoutes].find((route) => route.href === page.url.pathname)
+    [...userRoutes, ...settingRoutes, ...adminRoutes].find((route) => route.href === page.url.pathname)
   );
   const currentResources = $derived(currentRoute?.resource?.split('.') ?? ['profile']);
 </script>
@@ -24,7 +25,7 @@
 {#if data.user}
   <ModeWatcher />
   <Sidebar.Provider>
-    <AppSidebar {userRoutes} {settingRoutes} user={data.user} />
+    <AppSidebar {userRoutes} {settingRoutes} {adminRoutes} user={data.user} />
     <Sidebar.Inset>
       <header
         class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"

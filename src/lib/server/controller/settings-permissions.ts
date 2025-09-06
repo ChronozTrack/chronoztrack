@@ -9,7 +9,7 @@ const { createInsertSchema, createUpdateSchema } = createSchemaFactory({ coerce:
 export class RolePermissionController<T extends typeof tblRolePermissions> {
 	#db: typeof db = db;
 	#tbl: typeof tblRolePermissions;
-	#defaultActions = [{ canCreate: false, canRead: true, canUpdate: false, canDelete: false }];
+	#defaultValues = [{ canCreate: false, canRead: true, canUpdate: false, canDelete: false }];
 	#updatableFields: Partial<keyof Partial<TablePermissions>>[];
 
 	constructor(tbl: T, updateFields?: Partial<keyof Partial<TablePermissions>>[]) {
@@ -72,7 +72,7 @@ export class RolePermissionController<T extends typeof tblRolePermissions> {
 		| { rows: T['$inferSelect'][]; error?: never }
 		| { rows?: never; error: ZodError<T['$inferInsert'][]> }
 	> {
-		const permissions = formData.map((item) => Object.assign({ ...this.#defaultActions }, item));
+		const permissions = formData.map((item) => Object.assign({ ...this.#defaultValues }, item));
 		const validData = this.validateInsertData(permissions);
 
 		if (validData.error) {

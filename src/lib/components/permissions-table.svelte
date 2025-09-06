@@ -57,7 +57,7 @@
 							<Switch bind:checked={editEntry.canUpdate} />
 						</Table.Cell>
 						<Table.Cell class="text-center">
-							<Switch bind:checked={editEntry.canDelete} disabled />
+							<Switch bind:checked={editEntry.canDelete} />
 						</Table.Cell>
 						<Table.Cell class="text-center">
 							<Button variant="ghost" size="sm" onclick={() => permDraft.discardEntry(mapKey)}>

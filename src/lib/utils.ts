@@ -76,15 +76,28 @@ export async function parseRequest<T extends Record<string, unknown>>(
 	return parseFormData<T>(formData);
 }
 
-export function pathnameToDots(pathname: string): string {
-	return pathname
-		.split('/')
-		.filter(Boolean)
-		.map((part) => {
-			if (/^\[.*\]$/.test(part)) return null; // `[userId]` → null
-			if (/^\d+$/.test(part)) return null; // `123` → null
-			return part.replaceAll('-', '_');
-		})
-		.filter(Boolean)
-		.join('.');
+export function pathnameToResource(
+  pathname: string,
+  { mode = "full" }: { mode?: "full" | "last" } = {}
+): string {
+  const parts = pathname
+    .split("/")
+    .filter(Boolean)
+    .map((part) => {
+      // Ignore dynamic routes
+      if (/^\[\.{3}.*\]$/.test(part)) return null;
+      if (/^\[.*\]$/.test(part)) return null;
+
+      // Ignore pure numeric segments
+      if (/^\d+$/.test(part)) return null;
+
+      return part.toLowerCase().replace(/-/g, "_");
+    })
+    .filter(Boolean);
+
+  if (mode === "last") {
+    return parts.at(-1) ?? "";
+  }
+
+  return parts.join(".");
 }
