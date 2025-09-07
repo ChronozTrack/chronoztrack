@@ -1,4 +1,4 @@
-import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRoles, tblUserSchedule, tblTimeEvents, tblUserDesignation, tblUsers } from "./server/db/schema";
+import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRoles, tblUserSchedule, tblTimeEvents, tblUserDesignation, tblUsers, tblTemplates } from "./server/db/schema";
 import { APP_OPTIONS, APP_TABLES, USER_ACTION } from "$lib/defaults/app-defaults"
 import { Component } from "@lucide/svelte";
 
@@ -19,6 +19,7 @@ export type TableResources = typeof tblResources.$inferSelect;
 export type TableSchedules = typeof tblUserSchedule.$inferSelect;
 export type TablePermissions = typeof tblRolePermissions.$inferSelect;
 export type TableDesignations = typeof tblUserDesignation.$inferSelect;
+export type TableTemplates = typeof tblTemplates.$inferSelect;
 export type UserAction = typeof USER_ACTION[number];
 export type AppTableType = typeof APP_TABLES[number];
 export type AppOptionsType = typeof APP_OPTIONS[number];
@@ -59,7 +60,8 @@ export type Permissions = {
 
 type UserCore = Pick<typeof tblUsers.$inferSelect, 'id' | 'active' | 'name' | 'preferences'>;
 type RoleCore = Pick<typeof tblRoles.$inferSelect, 'id' | 'code' | 'name'>;
-type JobCore = Pick<typeof tblJobs.$inferSelect, 'id' | 'code' | 'name'>;
+export type JobCore = Pick<typeof tblJobs.$inferSelect, 'id' | 'code' | 'name'>;
+export type SupervisorCore = Pick<typeof tblUsers.$inferSelect, "id" | "name">;
 export type DepartmentCore = Pick<typeof tblDepartments.$inferSelect, 'id' | 'code' | 'name'>;
 
 export interface User extends UserCore {

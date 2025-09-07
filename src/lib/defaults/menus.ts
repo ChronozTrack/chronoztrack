@@ -1,4 +1,4 @@
-import type { AppPages, AppOptionsType } from "$lib/app-types";
+import type { AppPages, AppOptionsType } from '$lib/app-types';
 /**
  * https://github.com/lucide-icons/lucide/issues/1284
  * importing directly from '@lucide/svelte/icons' loads the entire icons
@@ -14,121 +14,129 @@ import Timer from '@lucide/svelte/icons/timer';
 import FileCog from '@lucide/svelte/icons/file-cog';
 import Tags from '@lucide/svelte/icons/tags';
 import ShieldCheck from '@lucide/svelte/icons/shield-check';
-import UserPlus from '@lucide/svelte/icons/user-plus'
+import UserPlus from '@lucide/svelte/icons/user-plus';
 import BookDashed from '@lucide/svelte/icons/book-dashed';
 
 export const OPTIONS_TAB: AppPages<AppOptionsType>[] = [
-  {
-    resource: 'settings.options',
-    id: 'jobs',
-    href: '#jobs',
-    title: "Jobs",
-    icon: Briefcase,
-    formId: "formapp-jobs",
-    formAction: {
-      create: "?/create-jobs",
-      update: "?/update-jobs"
-    }
-  },
-  {
-    resource: 'settings.options',
-    id: 'departments',
-    href: "#departments",
-    title: 'Departments',
-    icon: Building,
-    formId: `formapp-departments`,
-    formAction: {
-      create: `?/create-departments`,
-      update: `?/update-departments`
-    }
-  },
-  {
-    resource: 'settings.options',
-    id: 'roles',
-    href: '#roles',
-    title: 'Roles',
-    icon: ShieldCheck,
-    formId: `formapp-roles`,
-    formAction: {
-      create: `?/create-roles`,
-      update: `?/update-roles`
-    }
-  },
-  {
-    resource: 'settings.options',
-    id: 'time_events',
-    href: '#time_events',
-    title: "Time Events",
-    icon: Timer,
-    formId: "formapp-time_events",
-    formAction: {
-      create: "?/create-time_events",
-      update: "?/update-time_events"
-    }
-  },
-]
+	{
+		resource: 'settings.options',
+		id: 'jobs',
+		href: '#jobs',
+		title: 'Jobs',
+		icon: Briefcase,
+		formId: 'formapp-jobs',
+		formAction: {
+			create: '?/create-jobs',
+			update: '?/update-jobs'
+		}
+	},
+	{
+		resource: 'settings.options',
+		id: 'departments',
+		href: '#departments',
+		title: 'Departments',
+		icon: Building,
+		formId: `formapp-departments`,
+		formAction: {
+			create: `?/create-departments`,
+			update: `?/update-departments`
+		}
+	},
+	{
+		resource: 'settings.options',
+		id: 'roles',
+		href: '#roles',
+		title: 'Roles',
+		icon: ShieldCheck,
+		formId: `formapp-roles`,
+		formAction: {
+			create: `?/create-roles`,
+			update: `?/update-roles`
+		}
+	},
+	{
+		resource: 'settings.options',
+		id: 'time_events',
+		href: '#time_events',
+		title: 'Time Events',
+		icon: Timer,
+		formId: 'formapp-time_events',
+		formAction: {
+			create: '?/create-time_events',
+			update: '?/update-time_events'
+		}
+	}
+];
 
 export const SETTING_PAGES: AppPages[] = [
-  {
-    resource: 'settings.options',
-    href: "/settings/options",
-    title: "Options",
-    icon: FileCog,
-    id: 'options',
-  },
-  {
-    resource: 'settings.permissions',
-    href: "/settings/permissions",
-    title: "Permissions",
-    icon: ShieldUser,
-    id: 'permissions'
-  },
-  {
-    resource: 'settings.alias',
-    href: "/settings/alias",
-    title: 'Alias',
-    icon: Tags,
-    id: 'alias',
-  },
-]
+	{
+		resource: 'settings.options',
+		href: '/settings/options',
+		title: 'Options',
+		icon: FileCog,
+		id: 'options'
+	},
+	{
+		resource: 'settings.permissions',
+		href: '/settings/permissions',
+		title: 'Permissions',
+		icon: ShieldUser,
+		id: 'permissions'
+	},
+	{
+		resource: 'settings.alias',
+		href: '/settings/alias',
+		title: 'Alias',
+		icon: Tags,
+		id: 'alias'
+	}
+];
 
 export const APP_PAGES: AppPages[] = [
-  {
-    resource: 'entries',
-    href: '/entries',
-    title: 'Entries',
-    icon: ClockArrowDown,
-    id: 'entries',
-  },
-  {
-    resource: 'timesheets',
-    href: '/timesheets',
-    title: 'Timesheets',
-    icon: FileClock,
-    id: 'timesheets'
-  },
-]
+	{
+		resource: 'entries',
+		href: '/entries',
+		title: 'Entries',
+		icon: ClockArrowDown,
+		id: 'entries'
+	},
+	{
+		resource: 'timesheets',
+		href: '/timesheets',
+		title: 'Timesheets',
+		icon: FileClock,
+		id: 'timesheets'
+	}
+];
 
 export const ADMIN_PAGES: AppPages[] = [
-  {
-    resource: 'admin.users',
-    href: '/admin/users',
-    title: 'Users',
-    icon: Users,
-    id: 'users'
-  },
-  {
-    resource: 'admin.templates',
-    href: "/admin/templates",
-    title: "Templates",
-    icon: BookDashed,
-    id: 'schedules'
-  },
-  {
-    resource: 'admin.register',
-    href: "/admin/register",
-    title: "Register",
-    icon: UserPlus,
-    id: 'register'
-  },
-]
+	{
+		resource: 'admin.users',
+		href: '/admin/users',
+		title: 'Users',
+		icon: Users,
+		id: 'users'
+	},
+	{
+		resource: 'admin.templates',
+		href: '/admin/templates',
+		title: 'Templates',
+		icon: BookDashed,
+		id: 'schedules'
+	},
+	{
+		resource: 'admin.schedules',
+		href: '/admin/schedules',
+		title: 'Schedules',
+		icon: CalendarClock,
+		id: 'schedules'
+	},
+	{
+		resource: 'admin.register',
+		href: '/admin/register',
+		title: 'Register',
+		icon: UserPlus,
+		id: 'register'
+	}
+];
+

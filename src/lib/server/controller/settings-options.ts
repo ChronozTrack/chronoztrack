@@ -43,10 +43,12 @@ export class TableOptionsController<T extends TableOptionsType> {
 		action: 'create',
 		data: Record<string, FormDataEntryValue>[]
 	): ReturnType<typeof this.validateInsertData>;
+
 	public validateFormData(
 		action: 'update',
 		data: Record<string, FormDataEntryValue>[]
 	): ReturnType<typeof this.validateUpdateData>;
+
 	public validateFormData(
 		action: UserAction,
 		data: Record<string, FormDataEntryValue>[]
@@ -92,7 +94,7 @@ export class TableOptionsController<T extends TableOptionsType> {
 			(obj, row) => {
 				this.#updatableFields.forEach((field) => {
 					if (field in row) {
-						if (!obj.hasOwnProperty(field)) {
+						if (!Object.hasOwn(obj, field)) {
 							obj[field] = [];
 							obj[field].push(sql`(case`);
 						}

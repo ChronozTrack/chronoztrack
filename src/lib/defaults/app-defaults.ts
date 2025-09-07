@@ -1,4 +1,5 @@
 import type { DialogAction, TablePermissions } from '$lib/app-types';
+import { env } from '$env/dynamic/public';
 
 export const APP_RESOURCES = [
 	'profile',
@@ -20,10 +21,19 @@ export const APP_TABLES = [
 	'time_events'
 ] as const;
 
+const envAdminRoles = (env.PUBLIC_ADMIN_ROLES ?? '')
+	.split(',')
+	.map((str) => Number(str.trim()))
+	.filter((n) => !isNaN(n));
+const envDefaultRoles = (env.PUBLIC_DEFAULT_ROLES ?? '')
+	.split(',')
+	.map((str) => Number(str.trim()))
+	.filter((n) => !isNaN(n));
+export const ROLES_ADMIN = envAdminRoles.length ? envAdminRoles : [1, 2];
+export const ROLES_DEFAULT = envDefaultRoles.length ? envDefaultRoles : [1, 2, 3];
+
 export const USER_ACTION = ['create', 'read', 'update', 'delete'] as const;
 export const APP_OPTIONS = ['jobs', 'departments', 'roles', 'time_events'] as const;
-export const DEFAULT_ADMINS = [1, 2];
-export const DEFAULT_ROLES = [1, 2, 3];
 
 //DEFAULT USER ACCESS [profile, user, time_entries, timesheets]
 export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId'>[] = [
@@ -79,4 +89,3 @@ export function getDialoMessage(resource: (typeof APP_RESOURCES)[number], action
 
 	return message[action];
 }
-

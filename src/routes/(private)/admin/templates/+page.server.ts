@@ -1,71 +1,88 @@
 import type { PageServerLoad } from './$types';
 import type { User, DepartmentCore } from '$lib/app-types';
-import { DEFAULT_ADMINS, DEFAULT_ROLES } from "$lib/defaults/app-defaults";
-import { db } from "$lib/server/db";
+import { db } from '$lib/server/db';
+import { clientTemplates } from '$lib/server/controller/templates';
 import { UserAccess } from '$lib/server/controller/permission';
 import { error } from '@sveltejs/kit';
 import { tblDepartments, tblUsers, tblJobs, tblUserDesignation } from '$lib/server/db/schema';
 import { notInArray, eq, inArray, and } from 'drizzle-orm';
 
-//hardcoded
-const ADMINS = new Set([1, 2]);
+const RESOURCE = ['admin.templates'];
 
-const RESOURCE = ['jobs', 'departments', 'admin.users']
 export const load = (async ({ locals }) => {
-  const userAccess = new UserAccess(locals.user);
-  if (!locals.user || !userAccess.canView(RESOURCE)) {
-    error(403, { message: 'Forbidden' });
-  }
+	const userAccess = new UserAccess(locals.user);
+	if (!locals.user || !userAccess.canView(RESOURCE)) {
+		error(403, { message: 'Forbidden' });
+	}
 
-  const templateOptions = await getOptions(locals.user)
+	if (
+		!locals.user.designations ||
+		(Array.isArray(locals.user.designations) && locals.user.designations.length === 0)
+	) {
+		error(401, { message: 'Invalid request' });
+	}
 
-  if (!templateOptions || (Array.isArray(templateOptions) && templateOptions.length === 0)) {
-    error(401, { message: "Invalid request" })
-  }
+	const templateOptions = await getOptions(locals.user.designations, userAccess.isAdmin());
+	const templates = await getTemplates(locals.user.designations, userAccess.isAdmin());
 
-  return { templateOptions };
+	return { templateOptions, templates };
 }) satisfies PageServerLoad;
 
+async function getOptions(
+	designations: NonNullable<User['designations']>,
+	isAdmin: boolean = false
+) {
+	const departments: DepartmentCore[] = designations
+		.map((d) => d.department)
+		.filter((d): d is DepartmentCore => d !== null);
 
-async function getOptions(user: User) {
-  if (!user.designations || (Array.isArray(user.designations) && user.designations.length === 0)) {
-    return []
-  }
-  const departments: DepartmentCore[] =
-  user.designations
-    .map(d => d.department)
-    .filter((d): d is DepartmentCore => d !== null);
-
-  console.log(queryOptions(departments.map(d => d.id)))
-  if (departments.some(dept => DEFAULT_ADMINS.includes(dept.id))) {
-    return await queryEditorOptions()
-  }
-  return departments
+	if (isAdmin) {
+		return await queryEditorOptions();
+	} else {
+		return await queryOptions(departments);
+	}
 }
 
 async function queryEditorOptions() {
-  return await db.batch([
-    db.select({ id: tblDepartments.id, code: tblDepartments.code, name: tblDepartments.name }).from(tblDepartments),
-    db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs),
-    db.select({ id: tblUsers.id, name: tblUsers.name, }).from(tblUsers).where(notInArray(tblUsers.roleId, [3]))
-  ]).then(([departments, jobs, supervisors]) => {
-    return { departments, jobs, supervisors }
-  })
+	return await db
+		.batch([
+			db
+				.select({ id: tblDepartments.id, code: tblDepartments.code, name: tblDepartments.name })
+				.from(tblDepartments),
+			db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs),
+			db
+				.select({ id: tblUsers.id, name: tblUsers.name })
+				.from(tblUsers)
+				.where(notInArray(tblUsers.roleId, [3]))
+		])
+		.then(([departments, jobs, supervisors]) => {
+			return { departments, jobs, supervisors };
+		});
 }
 
-async function queryOptions(departmentIds: number[] = []) {
-  if (!departmentIds.length) {
-    return {}
-  }
+async function queryOptions(departments: DepartmentCore[]) {
+	const departmentIds = departments.map((d) => d.id);
 
-  // return await db.batch([
-  //   db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs),
-  //   db.select({ id: tblUsers.id, name: tblUsers.name }).from(tblUsers)
-  //     .leftJoin(tblUserDesignation, eq(tblUsers.id, tblUserDesignation.userId))
-  //     .where(and(inArray(tblUserDesignation.departmentId, departmentIds), notInArray(tblUsers.roleId, [3])))
-  // ])
-  console.log(departmentIds)
-  return db.select({ id: tblUsers.id, name: tblUsers.name }).from(tblUsers)
-       .leftJoin(tblUserDesignation, eq(tblUsers.id, tblUserDesignation.userId))
-       .where(and(inArray(tblUserDesignation.departmentId, [1,2,3,4]), notInArray(tblUsers.roleId, [3]))).toSQL()
+	return await db
+		.batch([
+			db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs),
+			db
+				.select({ id: tblUsers.id, name: tblUsers.name })
+				.from(tblUsers)
+				.leftJoin(tblUserDesignation, eq(tblUsers.id, tblUserDesignation.userId))
+				.where(
+					and(
+						inArray(tblUserDesignation.departmentId, departmentIds),
+						notInArray(tblUsers.roleId, [3])
+					)
+				)
+		])
+		.then(([jobs, supervisors]) => {
+			return { departments, jobs, supervisors };
+		});
+}
+
+async function getTemplates(designations: NonNullable<User['designations']>, isAdmin: boolean) {
+	const departmentId = designations.map((d) => d.department?.id ?? 0).filter(Boolean);
+	return await clientTemplates.select(departmentId, isAdmin);
 }

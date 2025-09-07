@@ -1,6 +1,7 @@
-import { getRequestEvent } from '$app/server';
 import type { UserAction, PermissionAction, User } from '$lib/app-types';
+import { getRequestEvent } from '$app/server';
 import { pathnameToResource } from '$lib/utils';
+import { ROLES_ADMIN } from '$lib/defaults/app-defaults';
 
 export type PermissionResource = string | string[] | URL;
 
@@ -15,9 +16,11 @@ export class UserAccess {
 	#user: User | null;
 	#resource: string[] = [];
 	#cache = new Map<string, boolean>();
+	#isAdmin: boolean;
 
 	constructor(user: User | null) {
 		this.#user = user ?? ({ permissions: {} } as User);
+		this.#isAdmin = ROLES_ADMIN.includes(user?.role?.id ?? 0);
 	}
 
 	get resource() {
@@ -80,9 +83,14 @@ export class UserAccess {
 	public canDelete(resource?: PermissionResource) {
 		return this.checkPermission('delete', resource);
 	}
+
+	public isAdmin() {
+		return this.#isAdmin;
+	}
 }
 
-export function getUserAccess(){
-	const {locals} = getRequestEvent();
-	return new UserAccess(locals.user)
+export function getUserAccess() {
+	const { locals } = getRequestEvent();
+	return new UserAccess(locals.user);
 }
+
