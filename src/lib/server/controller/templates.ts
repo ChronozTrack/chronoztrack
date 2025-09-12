@@ -48,18 +48,8 @@ export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
 		}
 	}
 
-	public async select(departmentId: number[], isAdmin: boolean) {
-		const query = db.select().from(this.#tbl);
-		const sqlCondition =
-			departmentId.length > 1
-				? eq(this.#tbl.departmentId, departmentId[0])
-				: inArray(this.#tbl.departmentId, departmentId);
-
-		if (isAdmin) {
-			return { rows: await query };
-		} else {
-			return { rows: await query.where(sqlCondition) };
-		}
+	public async select(departmentId: number): Promise<{ rows: T['$inferSelect'][] }> {
+		return { rows: await db.select().from(this.#tbl).where(eq(this.#tbl.departmentId, departmentId)) };
 	}
 
 	public async delete(formData: Record<string, FormDataEntryValue>[]) {

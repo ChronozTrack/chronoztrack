@@ -1,5 +1,7 @@
-import type { DialogAction, TablePermissions } from '$lib/app-types';
+import type { DialogAction, TablePermissions, TableTemplates } from '$lib/app-types';
 import { env } from '$env/dynamic/public';
+
+export const TIME_EVENTS = ['clock', 'break', 'lunch', 'bio', 'clinic', 'meeting'] as const;
 
 export const APP_RESOURCES = [
 	'profile',
@@ -24,11 +26,11 @@ export const APP_TABLES = [
 const envAdminRoles = (env.PUBLIC_ADMIN_ROLES ?? '')
 	.split(',')
 	.map((str) => Number(str.trim()))
-	.filter((n) => !isNaN(n));
+	.filter((n) => !isNaN(n) && n > 0);
 const envDefaultRoles = (env.PUBLIC_DEFAULT_ROLES ?? '')
 	.split(',')
 	.map((str) => Number(str.trim()))
-	.filter((n) => !isNaN(n));
+	.filter((n) => !isNaN(n) && n > 0);
 export const ROLES_ADMIN = envAdminRoles.length ? envAdminRoles : [1, 2];
 export const ROLES_DEFAULT = envDefaultRoles.length ? envDefaultRoles : [1, 2, 3];
 
@@ -63,6 +65,41 @@ export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId'>[] = [
 	},
 	{ resourceId: 6, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true }
 ];
+
+export const SCHEDULE_TEMPLATE: TableTemplates = {
+	id: 0,
+	name: 'Default Template',
+	departmentId: 0,
+	jobId: 0,
+	description: 'Default Template',
+	createdAt: '',
+	template: {
+		userTimezone: 'Asia/Manila',
+		clientTimezone: '',
+		clockIn: '06:00',
+		clockOut: '03:00',
+		events: [
+			{
+				timeEvent: 'break',
+				startTime: '08:00',
+				endTime: '08:15',
+				description: 'First Break'
+			},
+			{
+				timeEvent: 'lunch',
+				startTime: '08:00',
+				endTime: '08:15',
+				description: 'Lunch Break'
+			},
+			{
+				timeEvent: 'break',
+				startTime: '02:00',
+				endTime: '02:15',
+				description: 'Second Break'
+			}
+		]
+	}
+}
 
 //DICEBREAR LINK FOR AVATAR
 export const AVATAR_SRC =

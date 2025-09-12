@@ -137,8 +137,8 @@ export const tblUserDesignation = sqliteTable(
 		departmentId: integer().references(() => tblDepartments.id),
 		jobId: integer().references(() => tblJobs.id),
 		createdAt: text()
-			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`)
 	},
 	(table) => [
 		unique().on(table.userId, table.departmentId),
@@ -186,8 +186,8 @@ export const tblTemplates = sqliteTable(
 		description: text(),
 		template: text({ mode: 'json' }).notNull().$type<ScheduleTemplates>(),
 		createdAt: text()
-			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`)
 	},
 	(table) => [
 		unique().on(table.departmentId, table.jobId, table.name),

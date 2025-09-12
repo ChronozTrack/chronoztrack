@@ -1,5 +1,5 @@
 import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRoles, tblUserSchedule, tblTimeEvents, tblUserDesignation, tblUsers, tblTemplates } from "./server/db/schema";
-import { APP_OPTIONS, APP_TABLES, USER_ACTION } from "$lib/defaults/app-defaults"
+import { APP_OPTIONS, APP_TABLES, USER_ACTION, TIME_EVENTS } from "$lib/defaults/app-defaults"
 import { Component } from "@lucide/svelte";
 
 export type TableTimeEvents = typeof tblTimeEvents.$inferSelect
@@ -31,7 +31,7 @@ export interface UserPreferences {
 }
 
 export interface UserTimeEventSchedules {
-  timeEvent: string;
+  timeEvent: typeof TIME_EVENTS[number];
   startTime: string;
   endTime: string;
   description: string;

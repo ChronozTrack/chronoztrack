@@ -4,8 +4,9 @@ import { db } from '$lib/server/db';
 import { clientTemplates } from '$lib/server/controller/templates';
 import { UserAccess } from '$lib/server/controller/permission';
 import { error } from '@sveltejs/kit';
-import { tblDepartments, tblUsers, tblJobs, tblUserDesignation } from '$lib/server/db/schema';
-import { notInArray, eq, inArray, and } from 'drizzle-orm';
+import { tblDepartments, tblJobs, tblTimeEvents } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
+import { fail } from '@sveltejs/kit';
 
 const RESOURCE = ['admin.templates'];
 
@@ -23,10 +24,23 @@ export const load = (async ({ locals }) => {
 	}
 
 	const templateOptions = await getOptions(locals.user.designations, userAccess.isAdmin());
-	const templates = await getTemplates(locals.user.designations, userAccess.isAdmin());
 
-	return { templateOptions, templates };
+	return { templateOptions };
 }) satisfies PageServerLoad;
+
+export const actions = {
+	'get-templates': async ({ request }) => {
+		const formData = await request.formData();
+		const departmentId = Number(formData.get('departmentId'));
+		if (!departmentId) {
+			return fail(400, { message: 'Invalid Department' });
+		}
+
+		return {
+			templates: await clientTemplates.select(departmentId)
+		}
+	}
+}
 
 async function getOptions(
 	designations: NonNullable<User['designations']>,
@@ -48,41 +62,23 @@ async function queryEditorOptions() {
 		.batch([
 			db
 				.select({ id: tblDepartments.id, code: tblDepartments.code, name: tblDepartments.name })
-				.from(tblDepartments),
-			db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs),
-			db
-				.select({ id: tblUsers.id, name: tblUsers.name })
-				.from(tblUsers)
-				.where(notInArray(tblUsers.roleId, [3]))
+				.from(tblDepartments).where(eq(tblDepartments.active, true)),
+			db.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name }).from(tblTimeEvents)
+				.where(eq(tblTimeEvents.active, true)),
+			db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs).where(eq(tblJobs.active, true)),
 		])
-		.then(([departments, jobs, supervisors]) => {
-			return { departments, jobs, supervisors };
+		.then(([departments, timeEvents, jobs]) => {
+			return { departments, timeEvents, jobs };
 		});
 }
 
 async function queryOptions(departments: DepartmentCore[]) {
-	const departmentIds = departments.map((d) => d.id);
-
-	return await db
-		.batch([
-			db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs),
-			db
-				.select({ id: tblUsers.id, name: tblUsers.name })
-				.from(tblUsers)
-				.leftJoin(tblUserDesignation, eq(tblUsers.id, tblUserDesignation.userId))
-				.where(
-					and(
-						inArray(tblUserDesignation.departmentId, departmentIds),
-						notInArray(tblUsers.roleId, [3])
-					)
-				)
-		])
-		.then(([jobs, supervisors]) => {
-			return { departments, jobs, supervisors };
+	return db.batch([
+		db.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name }).from(tblTimeEvents)
+			.where(eq(tblTimeEvents.active, true)),
+		db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs).where(eq(tblJobs.active, true)),
+	])
+		.then(([timeEvents, jobs]) => {
+			return { departments, timeEvents, jobs };
 		});
-}
-
-async function getTemplates(designations: NonNullable<User['designations']>, isAdmin: boolean) {
-	const departmentId = designations.map((d) => d.department?.id ?? 0).filter(Boolean);
-	return await clientTemplates.select(departmentId, isAdmin);
 }
