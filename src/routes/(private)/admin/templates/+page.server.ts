@@ -7,6 +7,7 @@ import { error } from '@sveltejs/kit';
 import { tblDepartments, tblJobs, tblTimeEvents } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
+import { parseRequest } from '$lib/utils';
 
 const RESOURCE = ['admin.templates'];
 
@@ -38,9 +39,16 @@ export const actions = {
 
 		return {
 			templates: await clientTemplates.select(departmentId)
-		}
+		};
+	},
+	create: async (event) => {
+		const { request } = event;
+		const parsedData = await parseRequest(request);
+		const data = parsedData['templates'];
+		console.log(data?.[0]?.template);
+		return {};
 	}
-}
+};
 
 async function getOptions(
 	designations: NonNullable<User['designations']>,
@@ -62,10 +70,16 @@ async function queryEditorOptions() {
 		.batch([
 			db
 				.select({ id: tblDepartments.id, code: tblDepartments.code, name: tblDepartments.name })
-				.from(tblDepartments).where(eq(tblDepartments.active, true)),
-			db.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name }).from(tblTimeEvents)
+				.from(tblDepartments)
+				.where(eq(tblDepartments.active, true)),
+			db
+				.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name })
+				.from(tblTimeEvents)
 				.where(eq(tblTimeEvents.active, true)),
-			db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs).where(eq(tblJobs.active, true)),
+			db
+				.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name })
+				.from(tblJobs)
+				.where(eq(tblJobs.active, true))
 		])
 		.then(([departments, timeEvents, jobs]) => {
 			return { departments, timeEvents, jobs };
@@ -73,11 +87,17 @@ async function queryEditorOptions() {
 }
 
 async function queryOptions(departments: DepartmentCore[]) {
-	return db.batch([
-		db.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name }).from(tblTimeEvents)
-			.where(eq(tblTimeEvents.active, true)),
-		db.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name }).from(tblJobs).where(eq(tblJobs.active, true)),
-	])
+	return db
+		.batch([
+			db
+				.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name })
+				.from(tblTimeEvents)
+				.where(eq(tblTimeEvents.active, true)),
+			db
+				.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name })
+				.from(tblJobs)
+				.where(eq(tblJobs.active, true))
+		])
 		.then(([timeEvents, jobs]) => {
 			return { departments, timeEvents, jobs };
 		});

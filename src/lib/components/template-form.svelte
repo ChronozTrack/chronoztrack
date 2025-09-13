@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { DraftState } from '$lib/data-utils';
 	import type { UserTimeEventSchedules } from '$lib/app-types';
 	import type {
 		TableDepartments,
@@ -23,7 +22,6 @@
 
 	interface TemplateFormProps {
 		data: TableTemplates;
-		// templateDraft: DraftState<TableTemplates>;
 		isBusy: false;
 		deptOption: Pick<TableDepartments, 'id' | 'code' | 'name'>[];
 		jobOption: Pick<TableJobs, 'id' | 'code' | 'name'>[];
@@ -83,16 +81,36 @@
 	function deleteEvent(idx: number) {
 		events = events.filter((_, i) => i !== idx);
 	}
+
+	function prefix(names: string[]) {
+		let str = 'templates[0]';
+		names.forEach((n) => {
+			str += `[${n}]`;
+		});
+
+		return str;
+	}
 </script>
 
 <div class="grid grid-flow-col grid-rows-3 gap-4">
+	<input type="hidden" value={data.id} name={prefix(['id'])} />
 	<div class="grid grid-cols-4 items-center gap-4">
 		<Label class="text-right" for="name">Name</Label>
-		<Input class="col-span-3" type="text" id="name" name="name" bind:value={data.name} />
+		<Input
+			class="col-span-3"
+			type="text"
+			id="name"
+			name={prefix(['name'])}
+			bind:value={data.name}
+		/>
 	</div>
 	<div class="grid grid-cols-4 items-center gap-4">
 		<Label class="text-right" for="departmentId">Department</Label>
-		<Select.Root type="single" bind:value={getDepartmentId, setDepartmentId} name="departmentId">
+		<Select.Root
+			type="single"
+			bind:value={getDepartmentId, setDepartmentId}
+			name={prefix(['departmentId'])}
+		>
 			<Select.Trigger class="col-span-3 w-full">
 				{selectedDept?.name ?? 'Select Department'}
 			</Select.Trigger>
@@ -112,7 +130,7 @@
 	</div>
 	<div class="grid grid-cols-4 items-center gap-4">
 		<Label class="text-right" for="departmentId">Job</Label>
-		<Select.Root type="single" bind:value={getJobId, setJobId} name="jobId">
+		<Select.Root type="single" bind:value={getJobId, setJobId} name={prefix(['jobId'])}>
 			<Select.Trigger class="col-span-3 w-full">
 				{selectedJob?.name ?? 'Select Job'}
 			</Select.Trigger>
@@ -134,7 +152,7 @@
 		<Label for="description">Description</Label>
 		<Textarea
 			id="description"
-			name="description"
+			name={prefix(['description'])}
 			bind:value={data.description}
 			placeholder="Template description"
 		/>
@@ -170,7 +188,7 @@
 			class="col-span-2"
 			type="time"
 			id="clockIn"
-			name="clockIn"
+			name={prefix(['template', 'clockIn'])}
 			bind:value={data.template.clockIn}
 		/>
 	</div>
@@ -180,7 +198,7 @@
 			class="col-span-2"
 			type="time"
 			id="clockOut"
-			name="clockOut"
+			name={prefix(['template', 'clockOut'])}
 			bind:value={data.template.clockOut}
 		/>
 	</div>
@@ -188,10 +206,10 @@
 
 <Separator class="my-5" />
 
-<ScrollArea class="h-[300px]">
+<ScrollArea class="mb-4 h-[300px] rounded-md border">
 	<Table.Root>
 		<Table.Caption>Time Events</Table.Caption>
-		<Table.Header>
+		<Table.Header class="sticky top-0 z-10">
 			<Table.Row>
 				<Table.Head>
 					<Button size="sm" class="mr-2" onclick={addEvent}>
@@ -207,9 +225,10 @@
 		</Table.Header>
 		<Table.Body>
 			{#each events as event, idx (idx)}
+				{@const inputName = (n: string) => prefix(['template', 'events', String(idx), n])}
 				<Table.Row>
 					<Table.Cell>
-						<Select.Root type="single" name="timeEvent" bind:value={event.timeEvent}>
+						<Select.Root type="single" name={inputName('timeEvent')} bind:value={event.timeEvent}>
 							<Select.Trigger class="w-full">
 								{eventsOption.find((t) => t.code == event.timeEvent)?.name ?? 'Time Event'}
 							</Select.Trigger>
@@ -228,7 +247,7 @@
 					<Table.Cell
 						><Input
 							bind:value={event.startTime}
-							name="timeEvent"
+							name={inputName('startTime')}
 							type="time"
 							class="h-8 border-none"
 						/></Table.Cell
@@ -236,7 +255,7 @@
 					<Table.Cell
 						><Input
 							bind:value={event.endTime}
-							name="timeEvent"
+							name={inputName('endTime')}
 							type="time"
 							class="h-8 border-none"
 						/></Table.Cell
@@ -244,7 +263,7 @@
 					<Table.Cell
 						><Input
 							bind:value={event.description}
-							name="timeEvent"
+							name={inputName('description')}
 							type="text"
 							class="h-8 border-none"
 						/></Table.Cell

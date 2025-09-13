@@ -41,7 +41,7 @@
 		{ canCreate: false, canRead: false, canUpdate: false, canDelete: false }
 	);
 
-	let permData = new TableDataState<TablePermissions, 'roleId' | 'resourceId'>(
+	const permData = new TableDataState<TablePermissions, 'roleId' | 'resourceId'>(
 		[],
 		['resourceId', 'roleId']
 	);
