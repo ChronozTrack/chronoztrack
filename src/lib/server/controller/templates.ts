@@ -7,6 +7,28 @@ import type { TableTemplates, UserAction } from '$lib/app-types';
 
 type UpdatableFields = keyof Partial<TableTemplates>;
 
+type ParsedTemplate = {
+	id: FormDataEntryValue;
+	name: FormDataEntryValue;
+	description: FormDataEntryValue;
+	createdAt: FormDataEntryValue;
+	departmentId: FormDataEntryValue;
+	jobId: FormDataEntryValue;
+	template: {
+		userTimezone: FormDataEntryValue;
+		clientTimezone: FormDataEntryValue;
+		clockIn: FormDataEntryValue;
+		clockOut: FormDataEntryValue;
+		events: {
+			timeEvent: FormDataEntryValue;
+			startTime: FormDataEntryValue;
+			endTime: FormDataEntryValue;
+			description: FormDataEntryValue;
+		}[];
+	};
+};
+
+
 const { createInsertSchema, createUpdateSchema } = createSchemaFactory({ coerce: true });
 
 export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
@@ -27,17 +49,17 @@ export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
 
 	public validateFormData(
 		action: 'create',
-		data: Record<string, FormDataEntryValue>[]
+		data: ParsedTemplate[]
 	): ReturnType<typeof this.validateInsertData>;
 
 	public validateFormData(
 		action: 'update',
-		data: Record<string, FormDataEntryValue>[]
+		data: ParsedTemplate[]
 	): ReturnType<typeof this.validateUpdateData>;
 
 	public validateFormData(
 		action: UserAction,
-		data: Record<string, FormDataEntryValue>[]
+		data: ParsedTemplate[]
 	): ReturnType<typeof this.validateInsertData> | ReturnType<typeof this.validateUpdateData> {
 		if (action === 'create') {
 			return this.validateInsertData(data);
@@ -52,7 +74,7 @@ export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
 		return { rows: await db.select().from(this.#tbl).where(eq(this.#tbl.departmentId, departmentId)) };
 	}
 
-	public async delete(formData: Record<string, FormDataEntryValue>[]) {
+	public async delete(formData: ParsedTemplate[]) {
 		const validData = this.validateUpdateData(formData);
 
 		if (validData.error) {
@@ -70,7 +92,7 @@ export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
 	}
 
 	public async create(
-		formData: Record<string, FormDataEntryValue>[]
+		formData: ParsedTemplate[]
 	): Promise<
 		| { rows: T['$inferSelect'][]; error?: never }
 		| { rows?: never; error: ZodError<T['$inferInsert'][]> }
@@ -84,7 +106,7 @@ export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
 		return { rows: await this.#db.insert(this.#tbl).values(validData.data).returning() };
 	}
 
-	public async update(formData: Record<string, FormDataEntryValue>[]) {
+	public async update(formData: ParsedTemplate[]) {
 		const validData = this.validateUpdateData(formData);
 
 		if (validData.error) {
@@ -92,44 +114,18 @@ export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
 			return { error: validData.error };
 		}
 
-		const ids = validData.data.map((u) => u.id);
-		const sqlFields = validData.data.reduce(
-			(obj, row) => {
-				this.#updatableFields.forEach((field) => {
-					if (field in row) {
-						if (!Object.hasOwn(obj, field)) {
-							obj[field] = [];
-							obj[field].push(sql`(case`);
-						}
-
-						obj[field].push(sql`WHEN ${this.#tbl.id} = ${row.id} THEN ${row[field]}`);
-					}
-				});
-				return obj;
-			},
-			{} as Record<UpdatableFields, SQL<unknown>[]>
-		);
-
-		const sqlKeys = Object.keys(sqlFields) as (keyof typeof sqlFields)[];
-		const sqlUpdates = sqlKeys.reduce<Record<(typeof sqlKeys)[number], SQL>>(
-			(acc, field) => {
-				sqlFields[field].push(sql`END)`);
-				acc[field] = sql.join(sqlFields[field], sql.raw(' '));
-				return acc;
-			},
-			{} as Record<(typeof sqlKeys)[number], SQL>
-		);
+		const { id, ...data } = validData.data[0];
 
 		return {
-			rows: await db.update(this.#tbl).set(sqlUpdates).where(inArray(this.#tbl.id, ids)).returning()
+			rows: await db.update(this.#tbl).set(data).where(eq(this.#tbl.id, id)).returning()
 		};
 	}
 
-	private validateInsertData(formData: Record<string, FormDataEntryValue>[]) {
-		return z.array(createInsertSchema(this.#tbl)).min(1).safeParse(formData);
+	private validateInsertData(formData: ParsedTemplate[]) {
+		return z.array(createInsertSchema(this.#tbl).omit({ id: true })).min(1).safeParse(formData);
 	}
 
-	private validateUpdateData(formData: Record<string, FormDataEntryValue>[]) {
+	private validateUpdateData(formData: ParsedTemplate[]) {
 		return z
 			.array(createUpdateSchema(this.#tbl).required({ id: true }))
 			.min(1)

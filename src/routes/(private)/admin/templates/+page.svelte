@@ -1,155 +1,229 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import type { TableTemplates } from '$lib/app-types';
-	import { DraftState } from '$lib/data-utils';
+	import type { UserAction, TableTemplates, OptionsCore } from '$lib/app-types';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance } from '$app/forms';
+	import { TableDataState } from '$lib/data-utils';
 	import { SCHEDULE_TEMPLATE } from '$lib/defaults/app-defaults';
 	import { Button } from '$ui/button/index';
-	import { Skeleton } from '$ui/skeleton/index';
 	import * as Select from '$ui/select/index';
 	import * as Dialog from '$ui/dialog/index';
 	import BusyIcon from '$lib/components/busy-icon.svelte';
 	import TemplateForm from '$lib/components/template-form.svelte';
-	import Save from '@lucide/svelte/icons/save';
-	import Trash from '@lucide/svelte/icons/trash';
+	import SchedTemplateTable from '$lib/components/sched-template-table.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
+	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
 	import { tick } from 'svelte';
 
 	let { data }: PageProps = $props();
-	const { departments = [], jobs = [], timeEvents = [] } = data.templateOptions;
-	const templateData = new DraftState<TableTemplates>('templates', {
-		primary: ['id'],
-		isRequired: true
-	});
-	const templateDraft = new DraftState<TableTemplates>(
-		'templates',
-		{ primary: ['id'], isRequired: true },
-		SCHEDULE_TEMPLATE
+
+	const departments = new Map<number, OptionsCore>(
+		data.templateOptions.departments.map((d) => [d.id, d])
+	);
+	const jobs = new Map<number, OptionsCore>(data.templateOptions.jobs.map((j) => [j.id, j]));
+	const timeEvents = new Map<string, OptionsCore>(
+		data.templateOptions.time_events.map((t) => [t.code, t])
 	);
 
-	let activeDeptId = $state('');
+	const templateData = new TableDataState<TableTemplates, 'id'>([], ['id']);
+
 	let isBusy = $state(false);
 	let openForm = $state(false);
-	let selectedDept = $derived(departments.find((dept) => dept.id === Number(activeDeptId)));
-	let draftData = $derived.by(() => {
-		if (templateDraft.actionState === 'create') {
-			return {
-				action: '?/create',
-				data: templateDraft.newEntries.values().next().value
-			};
-		} else if (templateDraft.actionState === 'update') {
-			return {
-				action: '?/update',
-				data: templateDraft.modifiedEntries.values().next().value
-			};
-		} else if (templateDraft.actionState === 'delete') {
-			return {
-				action: '?/delete',
-				data: templateDraft.removedEnries.values().next().value
-			};
-		}
+	let showDialog = $state(false);
+	let activeDeptId = $state('');
+	let currentValue = $state<TableTemplates | undefined>(undefined);
+	let formAction = $state('');
+	let actionState = $state<UserAction>('read');
+	let deptFormElem = $state<HTMLFormElement | null>(null);
+	let templateFormElem = $state<HTMLFormElement | null>(null);
+	let selectedDept = $derived(departments.get(Number(activeDeptId)));
 
-		return {
-			action: '',
-			data: undefined
+	const onSelectDept: SubmitFunction = async () => {
+		isBusy = true;
+		return async ({ result }) => {
+			if (result.type === 'success' && result.data) {
+				const { templates } = result.data;
+				templateData.data = templates.rows;
+			} else if (result.type === 'error') {
+				console.error(result.error);
+			} else if (result.type === 'failure') {
+				console.error(result.data?.message);
+			}
+
+			isBusy = false;
 		};
-	});
+	};
 
-	async function onAddTemplate() {
-		templateDraft.addEntry();
-		await tick();
-		openForm = true;
-	}
+	const onPostTemplates: SubmitFunction = async () => {
+		isBusy = true;
+		return async ({ result }) => {
+			if (result.type === 'success' && result.data) {
+				const { rows, error } = result.data;
+				if (error) {
+					console.error(error);
+				} else {
+					if (actionState === 'delete') {
+						templateData.remove(rows);
+					} else {
+						templateData.update(rows);
+					}
 
-	function onAdd() {
-		templateDraft.addEntry();
-	}
+					openForm = false;
+				}
+			}
+			isBusy = false;
+			onAction();
+		};
+	};
 
-	function onEdit(entry: TableTemplates) {
-		templateDraft.updateEntry(entry);
-	}
+	function onAction(action: UserAction = 'read', entry?: TableTemplates) {
+		if (action === 'delete') {
+			showDialog = true;
+		} else {
+			formAction = `?/${action}`;
+			actionState = action;
 
-	function onDelete(entry: TableTemplates) {
-		templateDraft.deleteEntry(entry);
+			if (entry?.id) {
+				currentValue = structuredClone(entry);
+			} else {
+				if (action === 'create') {
+					currentValue = structuredClone(SCHEDULE_TEMPLATE);
+				} else if (action === 'read') {
+					currentValue = entry;
+				}
+
+				//Update: actionsState and actionForm only
+			}
+		}
+		if (currentValue && !openForm) {
+			openForm = true;
+		}
 	}
 
 	function onOpenChange(open: boolean) {
-		if (!open) {
-			templateDraft.discardAllChanges();
+		if (!open) onAction();
+	}
+
+	async function onValueChange(value: string) {
+		if (value) {
+			await tick();
+			deptFormElem?.requestSubmit();
 		}
+	}
+
+	async function onConfirmDelete() {
+		showDialog = false;
+		actionState = 'delete';
+		formAction = '?/delete';
+		await tick();
+
+		templateFormElem?.requestSubmit();
 	}
 </script>
 
-{#if draftData.action && draftData.data}
+{#if currentValue}
 	<Dialog.Root bind:open={openForm} {onOpenChange}>
-		<Dialog.Content
-			onEscapeKeydown={(e) => e.preventDefault()}
-			interactOutsideBehavior="ignore"
-			class="min-w-4xl"
-		>
+		<DialogConfirm
+			bind:open={showDialog}
+			description={`Do you want to delete the template <strong>${currentValue?.name ?? 'Template'}</strong>`}
+			action="delete"
+			onConfirm={onConfirmDelete}
+		/>
+		<Dialog.Content class="min-w-4xl" interactOutsideBehavior="ignore">
 			<Dialog.Header>
-				<Dialog.Title>Add Template</Dialog.Title>
-				<Dialog.Description>Add Schedule Template</Dialog.Description>
+				<Dialog.Title>
+					{actionState === 'create' ? 'Template Form' : currentValue.name}
+				</Dialog.Title>
+				<Dialog.Description></Dialog.Description>
 			</Dialog.Header>
-			<form method="POST" action={draftData.action}>
+			<form
+				method="POST"
+				action={formAction}
+				use:enhance={onPostTemplates}
+				bind:this={templateFormElem}
+			>
 				<TemplateForm
 					{isBusy}
 					deptOption={departments}
 					jobOption={jobs}
-					eventsOption={timeEvents}
-					data={draftData.data}
+					timeEventOption={timeEvents}
+					data={currentValue}
+					currentDept={selectedDept}
+					action={actionState}
 				/>
 				<Dialog.Footer>
-					<Button type="submit">Save Changes</Button>
+					<div class="flex items-center justify-end gap-2">
+						{#if actionState === 'read'}
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onclick={() => onAction('update')}
+								disabled={isBusy}>Edit</Button
+							>
+							<Button
+								type="button"
+								class="text-destructive"
+								variant="outline"
+								size="sm"
+								onclick={() => onAction('delete')}
+								disabled={isBusy}>Delete</Button
+							>
+						{:else if actionState !== 'delete'}
+							<Button type="submit" variant="outline" size="sm" disabled={isBusy}>
+								{actionState === 'update' ? 'Save Changes' : 'Add Template'}
+							</Button>
+						{/if}
+					</div>
 				</Dialog.Footer>
 			</form>
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}
 
-<div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
+<div class="w-full max-w-2xl overflow-auto md:max-w-6xl">
 	<div class="flex-col justify-start gap-4">
-		<div class="flex items-center justify-between">
-			<form action="">
-				<Select.Root type="single" bind:value={activeDeptId} name="departmentId">
-					<Select.Trigger class="w-[180px]"
-						>{selectedDept?.name ?? 'Select Department'}</Select.Trigger
-					>
-					<Select.Content>
-						<Select.Group>
-							<Select.Label>Department</Select.Label>
-							{#each departments as dept (dept.id)}
-								<Select.Item value={String(dept.id)}>{dept.name}</Select.Item>
-							{/each}
-						</Select.Group>
-					</Select.Content>
-				</Select.Root>
-			</form>
+		<div class="flex items-center justify-end">
 			<div class="flex items-center gap-2">
-				{#if selectedDept}
-					<!-- <Button variant="outline" size="sm"> -->
-					<!-- 	<BusyIcon {isBusy}><Save /></BusyIcon> -->
-					<!-- 	<span class="hidden md:inline">Save</span> -->
-					<!-- </Button> -->
-					<!-- <Button variant="outline" size="sm"> -->
-					<!-- 	<BusyIcon {isBusy}> -->
-					<!-- 		<Trash class="text-destructive" /> -->
-					<!-- 	</BusyIcon> -->
-					<!-- 	<span class="hidden md:inline">Clear</span> -->
-					<!-- </Button> -->
-					<Button variant="outline" size="sm" onclick={onAddTemplate} disabled={!selectedDept}>
-						<BusyIcon {isBusy}><Plus /></BusyIcon>
-						<span class="hidden md:inline">Add</span>
-					</Button>
-				{/if}
+				<form
+					method="POST"
+					action="?/get-templates"
+					use:enhance={onSelectDept}
+					bind:this={deptFormElem}
+				>
+					<Select.Root type="single" bind:value={activeDeptId} name="departmentId" {onValueChange}>
+						<Select.Trigger class="w-[180px]"
+							>{selectedDept?.name ?? 'Select Department'}</Select.Trigger
+						>
+						<Select.Content>
+							<Select.Group>
+								<Select.Label>Department</Select.Label>
+								{#each departments.entries() as [id, dept] (id)}
+									<Select.Item value={String(id)}>{dept.name}</Select.Item>
+								{/each}
+							</Select.Group>
+						</Select.Content>
+					</Select.Root>
+				</form>
+
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => onAction('create')}
+					disabled={!selectedDept || isBusy}
+				>
+					<BusyIcon {isBusy}><Plus /></BusyIcon>
+					<span class="hidden md:inline">Add</span>
+				</Button>
 			</div>
 		</div>
-		<div class="relative flex flex-col overflow-auto pt-4">
-			<div class="space-y-2 rounded-lg border p-2">
-				<Skeleton class="h-9" />
-				<Skeleton class="h-9" />
-				<Skeleton class="h-9" />
-				<Skeleton class="h-9" />
-			</div>
+		<div class="mt-4 space-y-2 rounded-lg border p-2">
+			<SchedTemplateTable
+				data={templateData.data}
+				deptOption={departments}
+				jobOption={jobs}
+				{onAction}
+			/>
 		</div>
 	</div>
 </div>

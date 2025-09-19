@@ -1,30 +1,24 @@
 import type { PageServerLoad } from './$types';
-import type { User, DepartmentCore } from '$lib/app-types';
+import type { User, DepartmentCore, TableTemplates, UserAction, OptionsCore } from '$lib/app-types';
 import { db } from '$lib/server/db';
 import { clientTemplates } from '$lib/server/controller/templates';
-import { UserAccess } from '$lib/server/controller/permission';
+import { queryOptions } from '$lib/server/controller/db-helper'
+import { getUserAccess } from '$lib/server/controller/permission';
 import { error } from '@sveltejs/kit';
 import { tblDepartments, tblJobs, tblTimeEvents } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import { parseRequest } from '$lib/utils';
 
 const RESOURCE = ['admin.templates'];
 
 export const load = (async ({ locals }) => {
-	const userAccess = new UserAccess(locals.user);
+	const userAccess = getUserAccess();
 	if (!locals.user || !userAccess.canView(RESOURCE)) {
 		error(403, { message: 'Forbidden' });
 	}
 
-	if (
-		!locals.user.designations ||
-		(Array.isArray(locals.user.designations) && locals.user.designations.length === 0)
-	) {
-		error(401, { message: 'Invalid request' });
-	}
-
-	const templateOptions = await getOptions(locals.user.designations, userAccess.isAdmin());
+	const templateOptions = await getOptions(locals.user, userAccess.isAdmin());
 
 	return { templateOptions };
 }) satisfies PageServerLoad;
@@ -42,63 +36,62 @@ export const actions = {
 		};
 	},
 	create: async (event) => {
-		const { request } = event;
-		const parsedData = await parseRequest(request);
-		const data = parsedData['templates'];
-		console.log(data?.[0]?.template);
-		return {};
+		return await handleRequest('create', event);
+	},
+	update: async (event) => {
+		return await handleRequest('update', event);
+	},
+	delete: async (event) => {
+		return await handleRequest('delete', event);
 	}
 };
 
-async function getOptions(
-	designations: NonNullable<User['designations']>,
-	isAdmin: boolean = false
+async function handleRequest(
+	action: UserAction,
+	{ request }: { locals: App.Locals; request: Request }
 ) {
-	const departments: DepartmentCore[] = designations
-		.map((d) => d.department)
-		.filter((d): d is DepartmentCore => d !== null);
+	const parsedData = await parseRequest<Record<string, TableTemplates[]>>(request);
+	const templateData = parsedData['templates'];
 
-	if (isAdmin) {
-		return await queryEditorOptions();
-	} else {
-		return await queryOptions(departments);
+	if (!templateData) {
+		return fail(400, { message: "Invalid Request" });
+	}
+
+	if (!getUserAccess().checkPermission(action, RESOURCE)) {
+		return fail(403, { message: `Unauthorized: User can't ${action} ${RESOURCE}` });
+	}
+
+	switch (action) {
+		case 'create':
+			return await clientTemplates.create(templateData);
+		case 'update':
+			return await clientTemplates.update(templateData);
+		case 'delete':
+			return await clientTemplates.delete(templateData);
+		default:
+			return fail(400, { message: "Invalid Request" });
 	}
 }
 
-async function queryEditorOptions() {
-	return await db
-		.batch([
-			db
-				.select({ id: tblDepartments.id, code: tblDepartments.code, name: tblDepartments.name })
-				.from(tblDepartments)
-				.where(eq(tblDepartments.active, true)),
-			db
-				.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name })
-				.from(tblTimeEvents)
-				.where(eq(tblTimeEvents.active, true)),
-			db
-				.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name })
-				.from(tblJobs)
-				.where(eq(tblJobs.active, true))
-		])
-		.then(([departments, timeEvents, jobs]) => {
-			return { departments, timeEvents, jobs };
-		});
+async function getOptions(
+	user: User,
+	isAdmin: boolean = false
+) {
+	const departmentId = getDepartmentId(user);
+	const { departments, jobs, time_events } = await queryOptions({
+		departments: {type: isAdmin ? '*' : 'include', ids: departmentId},
+		jobs: {type: "*"},
+		time_events: {type: "*"}
+	})
+
+	return { departments, jobs, time_events }
 }
 
-async function queryOptions(departments: DepartmentCore[]) {
-	return db
-		.batch([
-			db
-				.select({ id: tblTimeEvents.id, code: tblTimeEvents.code, name: tblTimeEvents.name })
-				.from(tblTimeEvents)
-				.where(eq(tblTimeEvents.active, true)),
-			db
-				.select({ id: tblJobs.id, code: tblJobs.code, name: tblJobs.name })
-				.from(tblJobs)
-				.where(eq(tblJobs.active, true))
-		])
-		.then(([timeEvents, jobs]) => {
-			return { departments, timeEvents, jobs };
-		});
+function getDepartmentId(user: User): number[]{
+	const designations = user.designations;
+	if(!designations){
+		return [];
+	}
+
+	return designations.map(d => d.department).map(d => d?.id ?? null).filter(d => d !== null) ?? []
 }

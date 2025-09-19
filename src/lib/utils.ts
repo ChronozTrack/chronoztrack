@@ -1,13 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { customAlphabet } from 'nanoid';
-import { getTimeZones } from '@vvo/tzdb';
+import { getTimeZones, type TimeZone } from '@vvo/tzdb';
 
-export const customId = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8);
-
-export function cn(...inputs: ClassValue[]) {
-	return twMerge(clsx(inputs));
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T;
@@ -20,6 +15,14 @@ export type RawFormDataShape<T> = T extends object
 	? { [K in keyof T]: RawFormDataShape<T[K]> }
 	: FormDataEntryValue;
 
+export const customId = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8);
+
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
+}
+
+export type TimeZonesInfo = Pick<TimeZone, 'rawFormat' | 'rawOffsetInMinutes' | 'name' | 'alternativeName'> & { offset: string, label: string, shortLabel: string, value: string };
+
 function preNormalize(value: FormDataEntryValue) {
 	if (typeof value === 'string' && value === 'false') {
 		return '';
@@ -27,6 +30,7 @@ function preNormalize(value: FormDataEntryValue) {
 
 	return value;
 }
+
 
 export function parseFormData<T extends Record<string, unknown>>(
 	formData: FormData
@@ -103,55 +107,36 @@ export function pathnameToResource(
 	return parts.join(".");
 }
 
-function getTimezoneOffset(timeZone: string) {
-	const now = new Date();
-
-	const formatter = new Intl.DateTimeFormat('en-US', {
-		timeZone,
-		hour12: false,
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-	});
-
-	const utcFormatter = new Intl.DateTimeFormat('en-US', {
-		timeZone: 'UTC',
-		hour12: false,
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-	});
-
-	const toSeconds = (parts: Intl.DateTimeFormatPart[]) => {
-		if (!parts) {
-			new Error('Invalid Date Parts');
-		}
-		const get = (type: 'hour' | 'minute' | 'second') => parseInt(parts?.find(p => p.type === type)?.value ?? '', 10);
-		return get('hour') * 3600 + get('minute') * 60 + get('second');
-	}
-
-	const localParts = formatter.formatToParts(now);
-	const utcParts = utcFormatter.formatToParts(now);
-
-	let diffSeconds = toSeconds(localParts) - toSeconds(utcParts);
-
-	if (diffSeconds < -43200) diffSeconds += 86400;
-	if (diffSeconds > 43200) diffSeconds -= 86400;
-
-	const sign = diffSeconds >= 0 ? '+' : '-';
-	const abs = Math.abs(diffSeconds);
-	const hours = String(Math.floor(abs / 3600)).padStart(2, '0');
-	const minutes = String(Math.floor((abs % 3600 / 60))).padStart(2, '0');
-
-	return `UTC${sign}${hours}:${minutes}`
-}
-
-
 export function getTimezoneMaps() {
 	const timeZones = getTimeZones();
-	return new Map(timeZones.map(tz => {
-		const { rawFormat, rawOffsetInMinutes, alternativeName, name } = tz
-		const offset = rawFormat.split(" ", 1)[0];
-		return [name, { rawFormat, rawOffsetInMinutes, alternativeName, name, offset }];
-	}))
+	const timeZonesMap: Map<string, TimeZonesInfo> = new Map();
+	const timeZonesRawMap: Map<string, TimeZonesInfo> = new Map();
+	timeZones.forEach(tz => {
+		const { rawFormat, rawOffsetInMinutes, alternativeName, name } = tz;
+		const offset = rawFormat.split(" ", 1)[0]
+		const obj = {
+			rawFormat, rawOffsetInMinutes, alternativeName, name, offset,
+			label: `(${offset} ${name}) ${alternativeName}`,
+			shortLabel: `${offset} ${name}`,
+			value: rawFormat,
+		}
+		timeZonesMap.set(name, obj)
+		timeZonesRawMap.set(rawFormat, obj)
+	})
+	return { timeZones, timeZonesMap, timeZonesRawMap }
+}
+
+export function timeToMinutes(time: string) {
+	const [hours, minutes] = time.split(":").map(Number)
+	return minutes + hours * 60
+}
+
+export function getEndTime(startTime: string, durationMinutes: number) {
+	let endMinutes = timeToMinutes(startTime) + durationMinutes;
+	if (endMinutes >= 24 * 60) {
+		endMinutes -= 24 * 60;
+	}
+	const hours = Math.floor(endMinutes / 60);
+	const minutes = endMinutes % 60;
+	return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
 }

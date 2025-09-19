@@ -2,12 +2,17 @@
 	import type { PageProps } from './$types';
 	import type { DialogAction, TablePermissions } from '$lib/app-types';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import BusyIcon from '$lib/components/busy-icon.svelte';
+	import { DraftState, TableDataState } from '$lib/data-utils';
+	import { enhance } from '$app/forms';
+	import { tick } from 'svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Save from '@lucide/svelte/icons/save';
 	import Trash from '@lucide/svelte/icons/trash';
+	import { DEFAULT_RESOURCES, getDialoMessage } from '$lib/defaults/app-defaults';
+	import BusyIcon from '$lib/components/busy-icon.svelte';
 	import PermissionsTable from '$lib/components/permissions-table.svelte';
 	import PostActionForm from '$lib/components/post-action-form.svelte';
+	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
 	import { Badge } from '$ui/badge/index';
 	import { Skeleton } from '$ui/skeleton/index';
 	import { Button, buttonVariants } from '$ui/button/index';
@@ -15,11 +20,6 @@
 	import * as Sheet from '$ui/sheet/index';
 	import * as Select from '$ui/select/index';
 	import * as Table from '$ui/table/index';
-	import { DraftState, TableDataState } from '$lib/data-utils';
-	import { enhance } from '$app/forms';
-	import { tick } from 'svelte';
-	import { DEFAULT_RESOURCES, getDialoMessage } from '$lib/defaults/app-defaults';
-	import DialogConfirm from '$lib/components/dialog-confirm.svelte';
 
 	let { data }: PageProps = $props();
 	let resFormOpen = $state(false);
@@ -96,7 +96,6 @@
 					console.error(error);
 				} else {
 					if (permDraft.actionState === 'delete') {
-						console.log(rows);
 						permData.remove(rows);
 					} else {
 						permData.update(rows);

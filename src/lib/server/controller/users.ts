@@ -30,7 +30,6 @@ class UsersController<T extends typeof tblUsers> {
           supervisor: {columns: {id: true, name: true}},
           designations: {
             where: (designation, {eq}) => eq(designation.active, true),
-            limit: 1,
             columns: {id: true, active: true, createdAt: true},
             with: {
               department: true,

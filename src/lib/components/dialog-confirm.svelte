@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { DialogAction } from '$lib/app-types';
   import * as AlertDialog from '$ui/alert-dialog/index';
 
   type DialogProps = {
@@ -8,6 +7,7 @@
     title?: string;
     action?: string;
     onConfirm: () => void;
+
   };
 
   let {
@@ -26,7 +26,7 @@
     <AlertDialog.Content>
       <AlertDialog.Header>
         <AlertDialog.Title class="capitalized">{title}</AlertDialog.Title>
-        <AlertDialog.Description>{description}</AlertDialog.Description>
+        <AlertDialog.Description>{@html description}</AlertDialog.Description>
       </AlertDialog.Header>
       <AlertDialog.Footer>
         <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>

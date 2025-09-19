@@ -69,15 +69,15 @@ export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId'>[] = [
 export const SCHEDULE_TEMPLATE: TableTemplates = {
 	id: 0,
 	name: 'Default Template',
-	departmentId: 0,
-	jobId: 0,
+	departmentId: 1,
+	jobId: 4,
 	description: 'Default Template',
 	createdAt: '',
 	template: {
 		userTimezone: 'Asia/Manila',
-		clientTimezone: '',
-		clockIn: '06:00',
-		clockOut: '03:00',
+		clientTimezone: 'Asia/Manila',
+		clockIn: '06:30',
+		clockOut: '15:30',
 		events: [
 			{
 				timeEvent: 'break',
@@ -87,14 +87,14 @@ export const SCHEDULE_TEMPLATE: TableTemplates = {
 			},
 			{
 				timeEvent: 'lunch',
-				startTime: '08:00',
-				endTime: '08:15',
+				startTime: '12:00',
+				endTime: '13:00',
 				description: 'Lunch Break'
 			},
 			{
 				timeEvent: 'break',
-				startTime: '02:00',
-				endTime: '02:15',
+				startTime: '14:00',
+				endTime: '14:15',
 				description: 'Second Break'
 			}
 		]

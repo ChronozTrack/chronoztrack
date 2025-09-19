@@ -1,4 +1,4 @@
-import type { AppOptionsType, SettingsOptions, UserAction } from '$lib/app-types';
+import type { AppOptionsType, SettingsOptions, UserAction, TableOptionsType } from '$lib/app-types';
 import { APP_OPTIONS } from '$lib/defaults/app-defaults';
 import { db } from '$lib/server/db';
 import { z, ZodError } from 'zod';
@@ -7,16 +7,12 @@ import { createSchemaFactory } from 'drizzle-zod';
 import { inArray, SQL, sql } from 'drizzle-orm';
 import type { UserAccess } from './permission';
 
-type TableOptionsType =
-	| typeof tblJobs
-	| typeof tblDepartments
-	| typeof tblTimeEvents
-	| typeof tblRoles;
+
 type UpdatableFields = Partial<
 	keyof Pick<TableOptionsType, 'id' | 'active' | 'code' | 'name' | 'description' | 'locked'>
 >;
 const { createInsertSchema, createUpdateSchema } = createSchemaFactory({ coerce: true });
-const TABLE_MAPS: Record<(typeof APP_OPTIONS)[number], TableOptionsType> = {
+const TABLE_MAPS: Record<AppOptionsType, TableOptionsType> = {
 	jobs: tblJobs,
 	departments: tblDepartments,
 	roles: tblRoles,

@@ -2,6 +2,11 @@ import type { tblDepartments, tblJobs, tblResources, tblRolePermissions, tblRole
 import { APP_OPTIONS, APP_TABLES, USER_ACTION, TIME_EVENTS } from "$lib/defaults/app-defaults"
 import { Component } from "@lucide/svelte";
 
+export type TableOptionsType =
+  | typeof tblJobs
+  | typeof tblDepartments
+  | typeof tblTimeEvents
+  | typeof tblRoles;
 export type TableTimeEvents = typeof tblTimeEvents.$inferSelect
 export type TableDepartments = typeof tblDepartments.$inferSelect
 export type TableJobs = typeof tblJobs.$inferSelect;
@@ -63,6 +68,7 @@ type RoleCore = Pick<typeof tblRoles.$inferSelect, 'id' | 'code' | 'name'>;
 export type JobCore = Pick<typeof tblJobs.$inferSelect, 'id' | 'code' | 'name'>;
 export type SupervisorCore = Pick<typeof tblUsers.$inferSelect, "id" | "name">;
 export type DepartmentCore = Pick<typeof tblDepartments.$inferSelect, 'id' | 'code' | 'name'>;
+export type OptionsCore = Pick<OptionsBaseTable, 'id' | 'code' | 'name'>;
 
 export interface User extends UserCore {
   role: RoleCore;

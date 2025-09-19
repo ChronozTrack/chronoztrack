@@ -5,16 +5,24 @@
 	import * as Command from '$lib/components/ui/command/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { cn } from '$lib/utils.js';
+	import type { HTMLAttributes } from 'svelte/elements';
+	import { cn, type WithElementRef } from '$lib/utils.js';
+
+	interface ComboValues {
+		label: string;
+		value: string;
+		[key: string]: string;  // Allow extra string properties like the dynamic keys in Record<string, string>
+	}
 
 	interface ComboboxProps {
-		lists: (Record<string, string> & { value: string; label: string })[];
+		lists: Iterable<ComboValues>;
 		placeholder: string;
 		variant?: 'link' | 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | undefined;
 		title: string;
 		value: string;
-    buttonClass: string;
+		buttonClass: string;
 	}
+
 
 	let open = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
@@ -24,15 +32,12 @@
 		placeholder,
 		title = 'Title',
 		value = $bindable(''),
-    buttonClass,
-	}: ComboboxProps = $props();
+		buttonClass
+	}: ComboboxProps & WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+	
+	let options = Array.from(lists)
+	let selectedValue= $derived(options.find(opt => opt.value === value));
 
-	let selectedValue: Record<string, string> & { value: string; label: string } = $derived(
-		lists.find((l) => l.value === value) ?? {
-			value: '',
-			label: 'Select ...'
-		}
-	);
 	// We want to refocus the trigger button when the user selects
 	// an item from the list so users can continue navigating the
 	// rest of the form with the keyboard.
@@ -42,21 +47,16 @@
 			triggerRef.focus();
 		});
 	}
+
 </script>
 
 <Popover.Root bind:open>
 	<Popover.Trigger bind:ref={triggerRef}>
 		{#snippet child({ props })}
-			<Button
-				{...props}
-				{variant}
-        class={buttonClass}
-				role="combobox"
-				aria-expanded={open}
-			>
-      <span class="overflow-hidden text-ellipsis">
-				{selectedValue.label || `Select ${title}`}
-      </span>
+			<Button {...props} {variant} class={buttonClass} role="combobox" aria-expanded={open}>
+				<span class="overflow-hidden text-ellipsis">
+					{selectedValue?.label || `Select ${title}`}
+				</span>
 				<ChevronsUpDownIcon class="opacity-50" />
 			</Button>
 		{/snippet}
@@ -67,7 +67,7 @@
 			<Command.List>
 				<Command.Empty>No framework found.</Command.Empty>
 				<Command.Group>
-					{#each lists as option (option.value)}
+					{#each options as option}
 						<Command.Item
 							value={option.value}
 							onSelect={() => {
