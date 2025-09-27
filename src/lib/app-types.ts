@@ -39,16 +39,13 @@ export interface UserTimeEventSchedules {
   timeEvent: typeof TIME_EVENTS[number];
   startTime: string;
   endTime: string;
+  duration_min: number;
   description: string;
 }
 
-export interface ScheduleTemplates {
-  userTimezone: string;
-  clientTimezone: string;
-  clockIn: string;
-  clockOut: string;
-  events: UserTimeEventSchedules[];
-}
+export type ScheduleTemplates = Pick<
+  TableSchedules,
+  'userTimezone' | 'clientTimezone' | 'clockIn' | 'clockOut' | 'events'>;
 
 export type UserDesignation = TableDesignations & {
   department: TableDepartments;

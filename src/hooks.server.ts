@@ -1,7 +1,28 @@
+import type { HandleServerError, Handle } from '@sveltejs/kit'
 import { UserAccess } from '$lib/server/controller/permission';
 import { sessionClient } from '$lib/server/controller/session';
-import { error, redirect, type Handle } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
+import { LibsqlError } from '@libsql/client';
+
+export const handleError: HandleServerError = ({ error, status}) => {
+  const uniqueRegex = new RegExp('UNIQUE constraint failed', 'i')
+  console.error(error)
+  if(error instanceof LibsqlError){
+    if(uniqueRegex.test(error.message)){
+      return {
+        status: 409,
+        message: 'Duplicates not allowed. Please choose another name or id'
+      }
+    }
+  }
+
+  return {
+    status, 
+    message: 'Sorry, server failed to process your request.'
+  }
+}
+
 
 export const auth: Handle = async ({ event, resolve }) => {
   const token = sessionClient.getSessionToken(event.cookies);
@@ -37,7 +58,7 @@ export const route: Handle = async ({ event, resolve }) => {
   if (event.url.pathname === '/logout') {
     return resolve(event)
   }
-  
+
   if (userAccess.canView(event.url)) {
     return resolve(event)
   } else if (userAccess.canView('profile')) {

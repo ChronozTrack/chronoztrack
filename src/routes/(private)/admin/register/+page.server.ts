@@ -1,8 +1,10 @@
 import type { PageServerLoad } from './$types';
-import type {  User } from '$lib/app-types';
+import type { User, TableUsers, TableDesignations, TableSchedules } from '$lib/app-types';
 import { getUserAccess, } from '$lib/server/controller/permission';
-import { error } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { queryOptions } from '$lib/server/controller/db-helper';
+import { clientTemplates } from '$lib/server/controller/templates';
+import { parseRequest } from '$lib/utils';
 
 const RESOURCE = 'admin.register'
 
@@ -13,10 +15,38 @@ export const load = (async ({ locals }) => {
     error(403, { message: 'Forbidden (register)' });
   }
 
-  const options =  await getOptions(locals.user, userAccess.isAdmin())
+  const options = await getOptions(locals.user, userAccess.isAdmin())
 
   return { options };
 }) satisfies PageServerLoad;
+
+export const actions = {
+  'get-templates': async ({ request }) => {
+    const formData = await request.formData();
+    const departmentId = Number(formData.get('departmentId'));
+    if (!departmentId) {
+      return fail(400, { message: 'Invalid Department' });
+    }
+    return {
+      templates: await clientTemplates.select(departmentId)
+    }
+  },
+  create: async ({ request }) => {
+    const parsedData = await parseRequest<
+      {
+        users: TableUsers[];
+        user_designations: TableDesignations[];
+        user_schedules: TableSchedules[];
+      }
+    >(request);
+    if (!parsedData) {
+      return fail(400, { message: 'Invalid Request' });
+    }
+    
+    console.log(parsedData)
+    return { user: [] }
+  }
+}
 
 async function getOptions(
   user: User,

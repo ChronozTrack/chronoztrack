@@ -1,12 +1,9 @@
 import type { PageServerLoad } from './$types';
-import type { User, DepartmentCore, TableTemplates, UserAction, OptionsCore } from '$lib/app-types';
-import { db } from '$lib/server/db';
+import type { User, TableTemplates, UserAction } from '$lib/app-types';
 import { clientTemplates } from '$lib/server/controller/templates';
 import { queryOptions } from '$lib/server/controller/db-helper'
 import { getUserAccess } from '$lib/server/controller/permission';
 import { error } from '@sveltejs/kit';
-import { tblDepartments, tblJobs, tblTimeEvents } from '$lib/server/db/schema';
-import { and, eq, inArray } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import { parseRequest } from '$lib/utils';
 

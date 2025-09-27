@@ -30,13 +30,12 @@
 	let isBusy = $state(false);
 	let openForm = $state(false);
 	let showDialog = $state(false);
-	let activeDeptId = $state('');
 	let currentValue = $state<TableTemplates | undefined>(undefined);
 	let formAction = $state('');
 	let actionState = $state<UserAction>('read');
 	let deptFormElem = $state<HTMLFormElement | null>(null);
 	let templateFormElem = $state<HTMLFormElement | null>(null);
-	let selectedDept = $derived(departments.get(Number(activeDeptId)));
+	let selectedDept = $derived(departments.get(0));
 
 	const onSelectDept: SubmitFunction = async () => {
 		isBusy = true;
@@ -70,6 +69,10 @@
 
 					openForm = false;
 				}
+			} else if (result.type === 'failure') {
+				console.error(result.data?.message);
+			} else if (result.type === 'error') {
+				console.error(result.error);
 			}
 			isBusy = false;
 			onAction();
@@ -119,6 +122,14 @@
 
 		templateFormElem?.requestSubmit();
 	}
+
+	function setDepartment(v: string){
+		selectedDept = departments.get(Number(v))
+	}
+
+	function getDepartment(){
+		return String(selectedDept?.id ?? '')
+	}
 </script>
 
 {#if currentValue}
@@ -144,10 +155,10 @@
 			>
 				<TemplateForm
 					{isBusy}
+					bind:data={currentValue}
 					deptOption={departments}
 					jobOption={jobs}
 					timeEventOption={timeEvents}
-					data={currentValue}
 					currentDept={selectedDept}
 					action={actionState}
 				/>
@@ -191,7 +202,7 @@
 					use:enhance={onSelectDept}
 					bind:this={deptFormElem}
 				>
-					<Select.Root type="single" bind:value={activeDeptId} name="departmentId" {onValueChange}>
+					<Select.Root type="single" bind:value={getDepartment, setDepartment} name="departmentId" {onValueChange}>
 						<Select.Trigger class="w-[180px]"
 							>{selectedDept?.name ?? 'Select Department'}</Select.Trigger
 						>

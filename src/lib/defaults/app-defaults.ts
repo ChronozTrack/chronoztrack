@@ -1,5 +1,6 @@
-import type { DialogAction, TablePermissions, TableTemplates } from '$lib/app-types';
+import type { DialogAction, TablePermissions, TableSchedules, TableTemplates } from '$lib/app-types';
 import { env } from '$env/dynamic/public';
+import { getDateFormat } from '$lib/utils';
 
 export const TIME_EVENTS = ['clock', 'break', 'lunch', 'bio', 'clinic', 'meeting'] as const;
 
@@ -32,7 +33,7 @@ const envDefaultRoles = (env.PUBLIC_DEFAULT_ROLES ?? '')
 	.map((str) => Number(str.trim()))
 	.filter((n) => !isNaN(n) && n > 0);
 export const ROLES_ADMIN = envAdminRoles.length ? envAdminRoles : [1, 2];
-export const ROLES_DEFAULT = envDefaultRoles.length ? envDefaultRoles : [1, 2, 3];
+export const ROLES_DEFAULT = envDefaultRoles.length ? envDefaultRoles : [3];
 
 export const USER_ACTION = ['create', 'read', 'update', 'delete'] as const;
 export const APP_OPTIONS = ['jobs', 'departments', 'roles', 'time_events'] as const;
@@ -83,22 +84,33 @@ export const SCHEDULE_TEMPLATE: TableTemplates = {
 				timeEvent: 'break',
 				startTime: '08:00',
 				endTime: '08:15',
+				duration_min: 15,
 				description: 'First Break'
 			},
 			{
 				timeEvent: 'lunch',
 				startTime: '12:00',
 				endTime: '13:00',
+				duration_min: 60,
 				description: 'Lunch Break'
 			},
 			{
 				timeEvent: 'break',
 				startTime: '14:00',
 				endTime: '14:15',
+				duration_min: 15,
 				description: 'Second Break'
 			}
 		]
 	}
+}
+
+export const DEFAULT_SCHEDULE: TableSchedules = {
+	id: 0,
+	userId: 0,
+	description: 'Default Schedule',
+	startDate: getDateFormat(),
+	...SCHEDULE_TEMPLATE.template
 }
 
 //DICEBREAR LINK FOR AVATAR

@@ -132,11 +132,26 @@ export function timeToMinutes(time: string) {
 }
 
 export function getEndTime(startTime: string, durationMinutes: number) {
-	let endMinutes = timeToMinutes(startTime) + durationMinutes;
+	let endMinutes = timeToMinutes(startTime) + Number(durationMinutes);
 	if (endMinutes >= 24 * 60) {
 		endMinutes -= 24 * 60;
 	}
 	const hours = Math.floor(endMinutes / 60);
 	const minutes = endMinutes % 60;
 	return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+}
+
+export function convertTo12Hour(time: string = '') {
+	if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) return "-";
+	
+	let [hours, minutes] = time.split(":").map(Number);
+	const ampm = hours >= 12 ? 'PM' : 'AM';
+	hours = hours % 12;
+	hours = hours === 0 ? 12 : hours;
+
+	return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`
+}
+
+export function getDateFormat(date: Date = new Date()) {
+	return date.toISOString().split("T", 1)[0]
 }
