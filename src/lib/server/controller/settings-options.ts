@@ -1,12 +1,11 @@
 import type { AppOptionsType, SettingsOptions, UserAction, TableOptionsType } from '$lib/app-types';
+import type { UserAccess } from './permission';
 import { APP_OPTIONS } from '$lib/defaults/app-defaults';
 import { db } from '$lib/server/db';
 import { z, ZodError } from 'zod';
 import { tblRoles, tblDepartments, tblJobs, tblTimeEvents } from '$lib/server/db/schema';
 import { createSchemaFactory } from 'drizzle-zod';
 import { inArray, SQL, sql } from 'drizzle-orm';
-import type { UserAccess } from './permission';
-
 
 type UpdatableFields = Partial<
 	keyof Pick<TableOptionsType, 'id' | 'active' | 'code' | 'name' | 'description' | 'locked'>

@@ -20,7 +20,7 @@ export async function validateUser(fetch: SvelteFetch, userId: number, password:
   if (!user || !user.active) {
     return null;
   }
-  console.log(user)
+  // console.log(user)
   const isPassword = await verifyPassword(fetch, {
     password,
     password_hash: user.password_hash as string

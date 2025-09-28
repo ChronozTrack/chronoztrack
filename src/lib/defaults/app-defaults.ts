@@ -1,4 +1,9 @@
-import type { DialogAction, TablePermissions, TableSchedules, TableTemplates } from '$lib/app-types';
+import type {
+	DialogAction,
+	TablePermissions,
+	TableSchedules,
+	TableTemplates
+} from '$lib/app-types';
 import { env } from '$env/dynamic/public';
 import { getDateFormat } from '$lib/utils';
 
@@ -24,16 +29,18 @@ export const APP_TABLES = [
 	'time_events'
 ] as const;
 
-const envAdminRoles = (env.PUBLIC_ADMIN_ROLES ?? '')
+const envAdminRoles = String(env.PUBLIC_ADMIN_ROLES ?? '')
 	.split(',')
 	.map((str) => Number(str.trim()))
 	.filter((n) => !isNaN(n) && n > 0);
-const envDefaultRoles = (env.PUBLIC_DEFAULT_ROLES ?? '')
+const envDefaultRoles = String(env.PUBLIC_DEFAULT_ROLES ?? '')
 	.split(',')
 	.map((str) => Number(str.trim()))
 	.filter((n) => !isNaN(n) && n > 0);
+
 export const ROLES_ADMIN = envAdminRoles.length ? envAdminRoles : [1, 2];
 export const ROLES_DEFAULT = envDefaultRoles.length ? envDefaultRoles : [3];
+export const APP_DOMAIN = env.PUBLIC_DOMAIN ?? 'chronoz';
 
 export const USER_ACTION = ['create', 'read', 'update', 'delete'] as const;
 export const APP_OPTIONS = ['jobs', 'departments', 'roles', 'time_events'] as const;
@@ -103,7 +110,7 @@ export const SCHEDULE_TEMPLATE: TableTemplates = {
 			}
 		]
 	}
-}
+};
 
 export const DEFAULT_SCHEDULE: TableSchedules = {
 	id: 0,
@@ -111,7 +118,7 @@ export const DEFAULT_SCHEDULE: TableSchedules = {
 	description: 'Default Schedule',
 	startDate: getDateFormat(),
 	...SCHEDULE_TEMPLATE.template
-}
+};
 
 //DICEBREAR LINK FOR AVATAR
 export const AVATAR_SRC =

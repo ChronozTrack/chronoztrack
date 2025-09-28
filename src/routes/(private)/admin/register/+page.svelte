@@ -24,9 +24,9 @@
 	import ScheduleForm from '$lib/components/schedule-form.svelte';
 
 	let { data }: PageProps = $props();
-	const _user = (key: string) => `users[0][${key}]`;
-	const _designation = (key: string) => `user_designations[0][${key}]`;
-	const _schedule = (key: string) => `user_schedules[0][${key}]`;
+	const _user = (key: string) => `user[${key}]`;
+	const _designation = (key: string) => `user_designation[${key}]`;
+	const _schedule = (key: string) => `user_schedule[${key}]`;
 	const _scheduleEvent = (idx: number, key: string) => `${_schedule('events')}[${idx}][${key}]`;
 	const departments = new Map<number, OptionsCore>(data.options.departments.map((d) => [d.id, d]));
 	const jobs = new Map<number, OptionsCore>(data.options.jobs.map((j) => [j.id, j]));
