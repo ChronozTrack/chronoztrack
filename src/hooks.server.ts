@@ -7,7 +7,6 @@ import { LibsqlError } from '@libsql/client';
 
 export const handleError: HandleServerError = ({ error, status}) => {
   const uniqueRegex = new RegExp('UNIQUE constraint failed', 'i')
-  console.error(error)
   if(error instanceof LibsqlError){
     if(uniqueRegex.test(error.message)){
       return {

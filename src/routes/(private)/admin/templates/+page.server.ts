@@ -76,17 +76,17 @@ async function getOptions(
 ) {
 	const departmentId = getDepartmentId(user);
 	const { departments, jobs, time_events } = await queryOptions({
-		departments: {type: isAdmin ? '*' : 'include', ids: departmentId},
-		jobs: {type: "*"},
-		time_events: {type: "*"}
+		departments: { type: isAdmin ? '*' : 'include', ids: departmentId, active: true },
+		jobs: { type: "*", active: true },
+		time_events: { type: "*", active: true }
 	})
 
 	return { departments, jobs, time_events }
 }
 
-function getDepartmentId(user: User): number[]{
+function getDepartmentId(user: User): number[] {
 	const designations = user.designations;
-	if(!designations){
+	if (!designations) {
 		return [];
 	}
 

@@ -5,36 +5,22 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1753771637879,
-      "tag": "0000_brainy_katie_power",
+      "when": 1759969587217,
+      "tag": "0000_sad_lilith",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "6",
-      "when": 1753771794266,
-      "tag": "0001_fts-users",
+      "when": 1759969603348,
+      "tag": "0001_table-triggers",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "6",
-      "when": 1753771860868,
-      "tag": "0002_init-value",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1755573048022,
-      "tag": "0003_mute_multiple_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1756962874237,
-      "tag": "0004_puzzling_supernaut",
+      "when": 1759969625065,
+      "tag": "0002_app-defaults",
       "breakpoints": true
     }
   ]

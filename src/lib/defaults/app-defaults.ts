@@ -33,45 +33,22 @@ const envAdminRoles = String(env.PUBLIC_ADMIN_ROLES ?? '')
 	.split(',')
 	.map((str) => Number(str.trim()))
 	.filter((n) => !isNaN(n) && n > 0);
-const envDefaultRoles = String(env.PUBLIC_DEFAULT_ROLES ?? '')
-	.split(',')
-	.map((str) => Number(str.trim()))
-	.filter((n) => !isNaN(n) && n > 0);
+const envDefaultRole = Number(env.PUBLIC_DEFAULT_ROLE);
 
 export const ROLES_ADMIN = envAdminRoles.length ? envAdminRoles : [1, 2];
-export const ROLES_DEFAULT = envDefaultRoles.length ? envDefaultRoles : [3];
+//DEFAULT_ROLE = null, will default in DBMS to 4;
+export const DEFAULT_ROLE = isNaN(envDefaultRole) || envDefaultRole < 4 ? null : envDefaultRole;
 export const APP_DOMAIN = env.PUBLIC_DOMAIN ?? 'chronoz';
 
 export const USER_ACTION = ['create', 'read', 'update', 'delete'] as const;
 export const APP_OPTIONS = ['jobs', 'departments', 'roles', 'time_events'] as const;
 
 //DEFAULT USER ACCESS [profile, user, time_entries, timesheets]
-export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId'>[] = [
-	{
-		resourceId: 1,
-		canCreate: true,
-		canRead: true,
-		canUpdate: true,
-		canDelete: false,
-		locked: true
-	},
-	{
-		resourceId: 2,
-		canCreate: true,
-		canRead: true,
-		canUpdate: true,
-		canDelete: false,
-		locked: true
-	},
-	{
-		resourceId: 5,
-		canCreate: true,
-		canRead: true,
-		canUpdate: true,
-		canDelete: false,
-		locked: true
-	},
-	{ resourceId: 6, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true }
+export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId' | 'modifiedBy'>[] = [
+	{ resourceId: 1, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true },
+	{ resourceId: 2, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true },
+	{ resourceId: 3, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true },
+	{ resourceId: 4, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true }
 ];
 
 export const SCHEDULE_TEMPLATE: TableTemplates = {

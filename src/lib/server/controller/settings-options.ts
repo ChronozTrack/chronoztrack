@@ -8,7 +8,7 @@ import { createSchemaFactory } from 'drizzle-zod';
 import { inArray, SQL, sql } from 'drizzle-orm';
 
 type UpdatableFields = Partial<
-	keyof Pick<TableOptionsType, 'id' | 'active' | 'code' | 'name' | 'description' | 'locked'>
+	keyof Pick<TableOptionsType, 'id' | 'active' | 'code' | 'name' | 'description' | 'locked' | 'modifiedBy'>
 >;
 const { createInsertSchema, createUpdateSchema } = createSchemaFactory({ coerce: true });
 const TABLE_MAPS: Record<AppOptionsType, TableOptionsType> = {
@@ -27,7 +27,7 @@ export class TableOptionsController<T extends TableOptionsType> {
 		this.#tblOptions = tblOptions;
 		this.#updatableFields = updateFields?.length
 			? updateFields
-			: ['name', 'code', 'description', 'active', 'locked'];
+			: ['name', 'code', 'description', 'active', 'locked', 'modifiedBy'];
 	}
 
 	get client() {

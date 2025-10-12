@@ -110,8 +110,7 @@
 		pendingAction = null;
 	}
 
-	const formSubmission: SubmitFunction = async ({ formData }) => {
-		console.log(formData);
+	const formSubmission: SubmitFunction = async () => {
 		isBusy = true;
 		return async ({ result }) => {
 			if (result.type === 'success' && result.data) {
@@ -150,7 +149,7 @@
 />
 
 {#await data.settingsOptions}
-	<div class="w-full max-w-2xl space-y-4 md:max-w-4xl">
+	<div class="w-full max-w-2xl space-y-4 md:max-w-5xl">
 		<Skeleton class="h-9" />
 		<div class="space-y-2 rounded-lg border p-2">
 			<Skeleton class="h-9" />
@@ -160,7 +159,7 @@
 		</div>
 	</div>
 {:then settingsOptions}
-	<div class="w-full max-w-2xl overflow-auto md:max-w-4xl">
+	<div class="w-full max-w-2xl overflow-auto md:max-w-5xl">
 		<Tabs.Root bind:value={activeTab} class="flex-col justify-start gap-4">
 			<div class="flex items-center justify-between">
 				<Tabs.List>

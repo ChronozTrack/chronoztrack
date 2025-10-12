@@ -1,1 +1,0 @@
-ALTER TABLE `role_permissions` ADD `locked` integer DEFAULT false NOT NULL;

@@ -118,18 +118,18 @@ export const ADMIN_PAGES: AppPages[] = [
 		id: 'users'
 	},
 	{
-		resource: 'admin.templates',
-		href: '/admin/templates',
-		title: 'Templates',
-		icon: BookDashed,
-		id: 'schedules'
-	},
-	{
 		resource: 'admin.schedules',
 		href: '/admin/schedules',
 		title: 'Schedules',
 		icon: CalendarClock,
 		id: 'schedules'
+	},
+	{
+		resource: 'admin.templates',
+		href: '/admin/templates',
+		title: 'Templates',
+		icon: BookDashed,
+		id: 'templates'
 	},
 	{
 		resource: 'admin.register',

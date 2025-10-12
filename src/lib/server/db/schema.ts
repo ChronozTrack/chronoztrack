@@ -1,5 +1,5 @@
-import type { ScheduleTemplates, UserPreferences, UserTimeEventSchedules } from '$lib/app-types';
-import { sql } from 'drizzle-orm';
+import type { ScheduleTemplates, UserPreferences, UserTimeEventSchedules, TimeEntriesDevice } from '$lib/app-types';
+import { inArray, sql } from 'drizzle-orm';
 import {
 	sqliteTable,
 	integer,
@@ -7,7 +7,8 @@ import {
 	primaryKey,
 	index,
 	unique,
-	type AnySQLiteColumn
+	type AnySQLiteColumn,
+	check
 } from 'drizzle-orm/sqlite-core';
 
 export const tblTimeEvents = sqliteTable(
@@ -18,7 +19,8 @@ export const tblTimeEvents = sqliteTable(
 		code: text().unique().notNull(),
 		name: text().unique().notNull(),
 		description: text(),
-		locked: integer({ mode: 'boolean' }).default(false).notNull()
+		locked: integer({ mode: 'boolean' }).default(false).notNull(),
+		modifiedBy: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' })
 	},
 	(table) => [index('time_events_active_idx').on(table.active)]
 );
@@ -31,7 +33,8 @@ export const tblDepartments = sqliteTable(
 		code: text().unique().notNull(),
 		name: text().unique().notNull(),
 		description: text(),
-		locked: integer({ mode: 'boolean' }).default(false).notNull()
+		locked: integer({ mode: 'boolean' }).default(false).notNull(),
+		modifiedBy: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' })
 	},
 	(table) => [index('departments_active_idx').on(table.active)]
 );
@@ -44,7 +47,8 @@ export const tblJobs = sqliteTable(
 		code: text().unique().notNull(),
 		name: text().unique().notNull(),
 		description: text(),
-		locked: integer({ mode: 'boolean' }).default(false).notNull()
+		locked: integer({ mode: 'boolean' }).default(false).notNull(),
+		modifiedBy: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' })
 	},
 	(table) => [index('jobs_active_idx').on(table.active)]
 );
@@ -57,7 +61,8 @@ export const tblRoles = sqliteTable(
 		code: text().unique().notNull(),
 		name: text().unique().notNull(),
 		description: text(),
-		locked: integer({ mode: 'boolean' }).default(false).notNull()
+		locked: integer({ mode: 'boolean' }).default(false).notNull(),
+		modifiedBy: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' })
 	},
 	(table) => [index('roles_active_idx').on(table.active)]
 );
@@ -70,7 +75,8 @@ export const tblResources = sqliteTable(
 		code: text().unique().notNull(),
 		name: text().unique().notNull(),
 		description: text(),
-		locked: integer({ mode: 'boolean' }).default(true).notNull()
+		locked: integer({ mode: 'boolean' }).default(true).notNull(),
+		modifiedBy: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' })
 	},
 	(table) => [index('resources_active_idx').on(table.active)]
 );
@@ -88,7 +94,8 @@ export const tblRolePermissions = sqliteTable(
 		canRead: integer({ mode: 'boolean' }).default(false).notNull(),
 		canUpdate: integer({ mode: 'boolean' }).default(false).notNull(),
 		canDelete: integer({ mode: 'boolean' }).default(false).notNull(),
-		locked: integer({ mode: 'boolean' }).default(false).notNull()
+		locked: integer({ mode: 'boolean' }).default(false).notNull(),
+		modifiedBy: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' })
 	},
 	(table) => [
 		primaryKey({ columns: [table.roleId, table.resourceId] }),
@@ -102,24 +109,17 @@ export const tblUsers = sqliteTable(
 		id: integer().primaryKey(),
 		active: integer({ mode: 'boolean' }).notNull().default(true),
 		name: text().notNull(),
-		roleId: integer()
-			.notNull()
-			.references(() => tblRoles.id, { onDelete: 'cascade' }),
+		roleId: integer().notNull().default(4).references(() => tblRoles.id, { onDelete: 'set default' }),
 		passwordHash: text().notNull(),
-		supervisorId: integer().references((): AnySQLiteColumn => tblUsers.id, {
-			onDelete: 'set null'
-		}),
+		supervisorId: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' }),
 		lockPassword: integer({ mode: 'boolean' }).notNull().default(false),
 		preferences: text({ mode: 'json' })
 			.notNull()
 			.default('{"background": null, "avatar": null, "mode": "light"}')
 			.$type<UserPreferences>(),
-		createdAt: text()
-			.notNull()
-			.default(sql`CURRENT_TIMESTAMP`),
-		updatedAt: text()
-			.notNull()
-			.default(sql`CURRENT_TIMESTAMP`)
+		createdAt: text().notNull().default(sql`CURRENT_TIMESTAMP`),
+		modifiedBy: integer().references((): AnySQLiteColumn => tblUsers.id, { onDelete: 'set null' }),
+		updatedAt: text().notNull().default(sql`CURRENT_TIMESTAMP`)
 	},
 	(table) => [
 		index('users_active_idx').on(table.active),
@@ -196,3 +196,34 @@ export const tblTemplates = sqliteTable(
 	]
 );
 
+export const tblTimeEntries = sqliteTable(
+	'time_entries',
+	{
+		id: integer().primaryKey(),
+		userId: integer().references(() => tblUsers.id, { onDelete: 'restrict' }),
+		scheduleId: integer().references(() => tblUserSchedule.id, { onDelete: 'restrict' }),
+		date: text().notNull(),
+		code: text().notNull(),
+		otherStartTime: integer({ mode: 'number' }),
+		startTime: integer({ mode: 'timestamp' }).notNull(),
+		endTime: integer({ mode: 'timestamp' }),
+		startRemarks: text(),
+		endRemarks: text(),
+		startDevice: text({ mode: 'json' }).notNull().default('{}').$type<TimeEntriesDevice>(),
+		endDevice: text({ mode: 'json' }).$type<TimeEntriesDevice>(),
+		createdAt: text().notNull().default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: text().notNull().default(sql`CURRENT_TIMESTAMP`)
+	}
+)
+
+export const tblTableLogs = sqliteTable('table_logs', {
+	id: integer().primaryKey(),
+	table_name: text().notNull(),
+	rowId: integer().notNull(),
+	operation: text().notNull(),
+	updatedAt: text().notNull().default(sql`CURRENT_TIMESTAMP`),
+	modifiedBy: text(),
+	rowData: text({ mode: 'json' }).notNull()
+}, (table) => [
+	check('check_operation', sql`${table.operation} IN ('UPDATE', 'DELETE')`)
+]);

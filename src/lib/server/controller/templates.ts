@@ -1,11 +1,9 @@
 import { db } from '$lib/server/db';
 import { tblTemplates } from '$lib/server/db/schema';
 import { createSchemaFactory } from 'drizzle-zod';
-import { eq, inArray, sql, SQL } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { z, ZodError } from 'zod';
-import type { TableTemplates, UserAction } from '$lib/app-types';
-
-type UpdatableFields = keyof Partial<TableTemplates>;
+import type { UserAction } from '$lib/app-types';
 
 type ParsedTemplate = {
 	id: FormDataEntryValue;
@@ -34,13 +32,9 @@ const { createInsertSchema, createUpdateSchema } = createSchemaFactory({ coerce:
 export class SchedTemplatesControlelr<T extends typeof tblTemplates> {
 	#db: typeof db = db;
 	#tbl: typeof tblTemplates;
-	#updatableFields: Partial<keyof Partial<TableTemplates>>[];
 
-	constructor(tbl: T, updateFields?: Partial<keyof Partial<TableTemplates>>[]) {
+	constructor(tbl: T) {
 		this.#tbl = tbl;
-		this.#updatableFields = updateFields
-			? updateFields
-			: ['name', 'departmentId', 'jobId', 'description', 'template'];
 	}
 
 	get client() {

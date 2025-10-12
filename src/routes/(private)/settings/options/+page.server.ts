@@ -23,7 +23,7 @@ export const actions = {
 
 async function handleRequest(
 	action: UserAction,
-	{ request }: { locals: App.Locals; request: Request }
+	{ request, locals }: { locals: App.Locals; request: Request }
 ) {
 	const parsedData = await parseRequest<SettingsOptions>(request);
 	const [resource, values] = Object.entries(parsedData)[0] as [
@@ -43,5 +43,5 @@ async function handleRequest(
 		});
 	}
 
-	return await postOption(action, resource, values);
+	return await postOption(action, resource, values.map(obj => Object.assign(obj, { modifiedBy: locals.user?.id ?? null })));
 }

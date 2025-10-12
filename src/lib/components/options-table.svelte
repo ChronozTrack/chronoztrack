@@ -26,12 +26,12 @@
 	<Table.Caption>List of {options.title} option.</Table.Caption>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head class="w-1/10 text-center">Id</Table.Head>
-			<Table.Head class="w-2/12">Code</Table.Head>
-			<Table.Head class="w-3/12">Name</Table.Head>
+			<Table.Head class="w-1/12 text-center">Id</Table.Head>
+			<Table.Head class="w-2/10">Code</Table.Head>
+			<Table.Head class="w-2/10">Name</Table.Head>
 			<Table.Head class="truncate">Description</Table.Head>
-			<Table.Head class="w-1/10 text-center">Active</Table.Head>
-			<Table.Head class="w-1/10 text-center">Action</Table.Head>
+			<Table.Head class="w-1/12 text-center">Active</Table.Head>
+			<Table.Head class="w-1/12 text-center">Action</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
@@ -68,9 +68,9 @@
 						</Button>
 					</Table.Cell>
 				{:else}
-					<Table.Cell>{row.code}</Table.Cell>
-					<Table.Cell>{row.name}</Table.Cell>
-					<Table.Cell class="truncate">{row.description}</Table.Cell>
+					<Table.Cell >{row.code}</Table.Cell>
+					<Table.Cell >{row.name}</Table.Cell>
+					<Table.Cell class="max-w-5/12"><p class="text-wrap">{row.description}</p></Table.Cell>
 					<Table.Cell class="text-center">{row.active ? 'Yes' : 'No'}</Table.Cell>
 					<Table.Cell class="text-center">
 						<Button

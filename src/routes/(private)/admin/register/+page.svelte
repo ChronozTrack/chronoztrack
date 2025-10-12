@@ -22,6 +22,8 @@
 	import BusyIcon from '$lib/components/busy-icon.svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import ScheduleForm from '$lib/components/schedule-form.svelte';
+	import { toast } from 'svelte-sonner';
+	import { BusyDeferred } from '$lib/data-utils';
 
 	let { data }: PageProps = $props();
 	const _user = (key: string) => `user[${key}]`;
@@ -35,7 +37,6 @@
 
 	let deptFormElem: HTMLFormElement | null = $state(null);
 	let userId: number | null = $state(null);
-	let isBusy = $state(false);
 	let editSchedule = $state(false);
 	let schedTemplates: NonNullable<TableTemplates>[] = $state([]);
 	let userDepartment: OptionsCore | undefined = $state();
@@ -43,22 +44,45 @@
 	let userSchedTemplate: NonNullable<TableTemplates> | undefined = $state();
 	let userSchedule: TableSchedules = $state(structuredClone(DEFAULT_SCHEDULE));
 	let draftSchedule: TableSchedules = $state(structuredClone(DEFAULT_SCHEDULE));
+	let loading = new BusyDeferred<string>();
 
 	const onUserAdd: SubmitFunction = async () => {
-		isBusy = true;
-		return async ({ result }) => {
-			if (result.type === 'success' && result.data) {
-				const { user } = result.data;
-				console.log(user);
-			} else if (result.type === 'error') {
-				console.error(result.error);
-			} else if (result.type === 'failure') {
-				console.error(result.data?.message);
+		loading.start();
+		toast.promise(loading.promise(), {
+			loading: 'Please wait...',
+			success: (message: string) => message,
+			error: (message) => String(message),
+			duration: 60000
+		});
+
+		return async ({ result, update }) => {
+			if(result.type === 'error' || result.type === 'failure'){
+				let message = ''
+				if(result.type === 'error'){
+					console.error(result.error)
+					message = result.error.message;
+				}else{
+					console.error(result.data?.message)
+					message = Object.entries(result.data?.message ?? {})
+						.filter((e) => e[1] !== undefined)
+						.map(([k, v]) => `${k}: ${v}`).join("\n");
+				}
+
+				loading.reject(message);
+			}else{
+				if(result.type === 'success' && result.data){
+					const { user } = result.data;
+					if(user.id){
+						loading.resolve(`User ${user.name} created successfully`);
+					}
+				}
+				update()
 			}
 		};
 	};
+
 	const onSelectDept: SubmitFunction = async () => {
-		isBusy = true;
+		loading.start();
 		return async ({ result }) => {
 			if (result.type === 'success' && result.data) {
 				const { templates } = result.data;
@@ -70,7 +94,7 @@
 				console.error(result.data?.message);
 			}
 
-			isBusy = false;
+			loading.resolve();
 		};
 	};
 
@@ -155,16 +179,18 @@
 			timeEventOption={timeEvents}
 			{timeZonesMap}
 			{timeZonesRawMap}
-			isReadOnly={isBusy}
+			isReadOnly={loading.isBusy}
 			prefixName={''}
 		/>
 		<Dialog.Footer>
 			<div class="flex items-center justify-end gap-2">
-				<Button variant="outline" size="sm" disabled={isBusy} onclick={onSaveSchedule}>Save</Button>
+				<Button variant="outline" size="sm" disabled={loading.isBusy} onclick={onSaveSchedule}
+					>Save</Button
+				>
 				<Button
 					variant="outline"
 					size="sm"
-					disabled={isBusy}
+					disabled={loading.isBusy}
 					onclick={() => (editSchedule = false)}
 					class="text-destructive">Cancel</Button
 				>
@@ -195,7 +221,7 @@
 						{/if}
 					{/each}
 				</fieldset>
-				<fieldset disabled={isBusy}>
+				<fieldset disabled={loading.isBusy}>
 					<div class="grid gap-4">
 						<div class="grid grid-cols-4 items-center gap-4">
 							<Label class="justify-end" for={_user('id')}>Employee ID</Label>
@@ -229,7 +255,7 @@
 								}
 								name={_designation('departmentId')}
 								required={true}
-								disabled={isBusy}
+								disabled={loading.isBusy}
 								onValueChange={onDepartmentChange}
 							>
 								<Select.Trigger class="col-span-3 w-full">
@@ -256,7 +282,7 @@
 								bind:value={() => String(userJob?.id ?? ''), (v) => (userJob = jobs.get(Number(v)))}
 								name={_designation('jobId')}
 								required={true}
-								disabled={isBusy}
+								disabled={loading.isBusy}
 								onValueChange={onJobChange}
 							>
 								<Select.Trigger class="col-span-3 w-full">
@@ -286,7 +312,7 @@
 										() => String(userSchedTemplate?.id ?? ''), (v) => setSchedTemplate(true, v)
 									}
 									required={true}
-									disabled={isBusy}
+									disabled={loading.isBusy}
 								>
 									<Select.Trigger class="col-span-3 w-full">
 										{userSchedTemplate?.name ?? 'Select Schedule'}
@@ -357,7 +383,7 @@
 			</form>
 		</Card.Content>
 		<Card.Footer class="flex justify-end">
-			<Button form="form-register" type="submit" disabled={isBusy}>
+			<Button form="form-register" type="submit" disabled={loading.isBusy}>
 				<BusyIcon>Submit</BusyIcon>
 			</Button>
 		</Card.Footer>

@@ -1,11 +1,10 @@
 import { z } from "zod"
 export const usersFilterSchema = z.object({
-  userId: z.coerce.number(),
-  name: z.coerce.string(),
-  roleId: z.coerce.number(),
-  departmentId: z.coerce.number(),
-  jobsId: z.coerce.number(),
-  supervisorId: z.coerce.number(),
+  search: z.coerce.string(),
+  role: z.coerce.number().array().default([]),
+  department: z.coerce.number().array().default([]),
+  job: z.coerce.number().array().default([]),
+  supervisor: z.coerce.number().array().default([]),
   active: z.preprocess((v) => {
     if (typeof v === 'string') {
       return v === 'false' ? false : true;

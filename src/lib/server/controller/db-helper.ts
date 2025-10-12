@@ -3,11 +3,11 @@ import { eq, inArray, and, type SQL, notInArray, getTableName, ne } from "drizzl
 import { tblDepartments, tblJobs, tblRoles, tblTimeEvents } from "$lib/server/db/schema";
 import { db } from "../db";
 import type { BatchItem } from "drizzle-orm/batch";
-import type { APP_OPTIONS } from "$lib/defaults/app-defaults";
 
 type FilterOptions = {
   type: 'include' | 'exclude' | "*";
   ids?: number[];
+  active?: boolean | null;
 }
 type QueryOptions = Partial<Record<AppOptionsType, FilterOptions>>
 
@@ -29,7 +29,6 @@ export async function queryOptions(options: QueryOptions) {
   }
 
   let queryOrderKey: AppTableType[] = []
-  const { departments, time_events, jobs, roles } = options;
   const queryOptions: BatchItem<"sqlite">[] = [];
 
   Object.entries(options).forEach(([tblName, filters]) => {
@@ -51,11 +50,9 @@ export async function queryOptions(options: QueryOptions) {
 }
 
 
-function parseFilterOptions<T extends TableOptionsType>(tbl: T, { type, ids }: FilterOptions) {
-  const filters: SQL[] = [eq(tbl.active, true)]
-  if (type === '*') {
-    return filters[0]
-  } else if (!ids || !ids.length) {
+function parseFilterOptions<T extends TableOptionsType>(tbl: T, { type, ids, active }: FilterOptions) {
+  const filters: SQL[] = [eq(tbl.active, active ?? true)]
+  if (!ids || !ids.length) {
     return null;
   } else if (type === 'include') {
     if (ids.length === 1) {
@@ -70,15 +67,22 @@ function parseFilterOptions<T extends TableOptionsType>(tbl: T, { type, ids }: F
       filters.push(notInArray(tbl.id, ids))
     }
   }
+
   return and(...filters)
 }
 
 function queryOptionTable<T extends TableOptionsType>(tbl: T, filters: FilterOptions) {
-  const sqlCondition = parseFilterOptions(tbl, filters);
-  if (!sqlCondition) return null
+  const query = db.select({ id: tbl.id, code: tbl.code, name: tbl.name }).from(tbl).$dynamic()
+  if (filters.type === "*") {
+    if(typeof filters.active === 'boolean'){
+      return query.where(eq(tbl.active, filters.active))
+    }else{
+      return query
+    }
+  } else {
+    const sqlCondition = parseFilterOptions(tbl, filters);
+    if (!sqlCondition) return null
 
-  return db
-    .select({ id: tbl.id, code: tbl.code, name: tbl.name })
-    .from(tbl)
-    .where(sqlCondition)
+    return query.where(sqlCondition)
+  }
 }

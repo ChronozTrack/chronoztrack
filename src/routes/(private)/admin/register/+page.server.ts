@@ -1,16 +1,15 @@
 import type { PageServerLoad } from './$types';
 import type {
 	User,
-	TableUsers,
-	TableDesignations,
-	TableSchedules,
+	UserTablesCore
 } from '$lib/app-types';
 import { getUserAccess } from '$lib/server/controller/permission';
 import { error, fail } from '@sveltejs/kit';
 import { queryOptions } from '$lib/server/controller/db-helper';
 import { clientTemplates } from '$lib/server/controller/templates';
 import { parseRequest } from '$lib/utils';
-import { addUser } from '$lib/server/controller/register';
+import { usersController } from '$lib/server/controller/users';
+import { prettifyError } from 'zod';
 
 const RESOURCE = 'admin.register';
 
@@ -38,27 +37,32 @@ export const actions = {
 		};
 	},
 	create: async ({ fetch, request }) => {
-		const parsedData = await parseRequest<{
-			user: TableUsers;
-			user_designation: TableDesignations;
-			user_schedule: TableSchedules;
-		}>(request);
+		const parsedData = await parseRequest<UserTablesCore>(request);
 
 		if (!parsedData) {
 			return fail(400, { message: 'Invalid Request' });
 		}
 
-    const user = addUser(fetch, parsedData)
-		return { user };
+		const result = await usersController.create(fetch, parsedData)
+		if (!Array.isArray(result) && typeof result === 'object' && result !== null) {
+			return fail(400, {
+				message: {
+					user: result.user ? prettifyError(result.user) : undefined,
+					user_designation: result.user_designation ? prettifyError(result.user_designation) : undefined,
+					user_schedule: result.user_schedule ? prettifyError(result.user_schedule) : undefined
+				}
+			})
+		}
+		return { user: result[0] }
 	}
 };
 
 async function getOptions(user: User, isAdmin: boolean = false) {
 	const departmentId = getDepartmentId(user);
 	const { departments, jobs, time_events } = await queryOptions({
-		departments: { type: isAdmin ? '*' : 'include', ids: departmentId },
-		jobs: { type: '*' },
-		time_events: { type: '*' }
+		departments: { type: isAdmin ? '*' : 'include', ids: departmentId, active: true },
+		jobs: { type: '*', active: true },
+		time_events: { type: '*', active: true }
 	});
 
 	return { departments, jobs, time_events };

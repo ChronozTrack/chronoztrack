@@ -10,8 +10,16 @@ import type {
 	tblUsers,
 	tblTemplates
 } from './server/db/schema';
+import type { IResult } from 'ua-parser-js';
 import { APP_OPTIONS, APP_TABLES, USER_ACTION, TIME_EVENTS } from '$lib/defaults/app-defaults';
 import { Component } from '@lucide/svelte';
+
+type RemoveMethodsDeep<T> = {
+	[K in keyof T as T[K] extends (...args: any[]) => any ? never : K]:
+	T[K] extends object
+	? RemoveMethodsDeep<T[K]>
+	: T[K];
+};
 
 export type SvelteFetch = {
 	(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>;
@@ -23,6 +31,7 @@ export type TableOptionsType =
 	| typeof tblDepartments
 	| typeof tblTimeEvents
 	| typeof tblRoles;
+
 export type TableTimeEvents = typeof tblTimeEvents.$inferSelect;
 export type TableDepartments = typeof tblDepartments.$inferSelect;
 export type TableJobs = typeof tblJobs.$inferSelect;
@@ -35,6 +44,7 @@ export interface SettingsOptions extends Record<string, OptionsBaseTable[]> {
 	time_events: TableTimeEvents[];
 }
 
+
 export type TableUsers = typeof tblUsers.$inferSelect;
 export type TableResources = typeof tblResources.$inferSelect;
 export type TableSchedules = typeof tblUserSchedule.$inferSelect;
@@ -44,6 +54,13 @@ export type TableTemplates = typeof tblTemplates.$inferSelect;
 export type UserAction = (typeof USER_ACTION)[number];
 export type AppTableType = (typeof APP_TABLES)[number];
 export type AppOptionsType = (typeof APP_OPTIONS)[number];
+
+export interface UserTablesCore {
+	user: TableUsers;
+	user_designation: TableDesignations;
+	user_schedule: TableSchedules;
+	[key: string]: TableSchedules | TableDesignations | TableUsers;
+}
 
 export interface UserPreferences {
 	background: string | null;
@@ -80,21 +97,21 @@ export type Permissions = {
 	};
 };
 
-type UserCore = Pick<typeof tblUsers.$inferSelect, 'id' | 'active' | 'name' | 'preferences'>;
-type RoleCore = Pick<typeof tblRoles.$inferSelect, 'id' | 'code' | 'name'>;
-export type JobCore = Pick<typeof tblJobs.$inferSelect, 'id' | 'code' | 'name'>;
-export type SupervisorCore = Pick<typeof tblUsers.$inferSelect, 'id' | 'name'>;
-export type DepartmentCore = Pick<typeof tblDepartments.$inferSelect, 'id' | 'code' | 'name'>;
-export type OptionsCore = Pick<OptionsBaseTable, 'id' | 'code' | 'name'>;
+type UserCore = Pick<TableUsers, 'id' | 'active' | 'name' | 'preferences'>;
+type RoleCore = Pick<TableRoles, 'id' | 'code' | 'name'>;
+export type JobCore = Pick<TableJobs, 'id' | 'code' | 'name' | 'active'>;
+export type SupervisorCore = Pick<TableUsers, 'id' | 'name' | 'active'>;
+export type DepartmentCore = Pick<TableDepartments, 'id' | 'code' | 'name'>;
+export type OptionsCore = Pick<OptionsBaseTable, 'id' | 'code' | 'name' | 'active'>;
 
 export interface User extends UserCore {
 	role: RoleCore;
 	designations:
-		| null
-		| {
-				job: JobCore | null;
-				department: DepartmentCore | null;
-		  }[];
+	| null
+	| {
+		job: OptionsCore | null;
+		department: OptionsCore | null;
+	}[];
 	permissions: Permissions;
 }
 
@@ -121,6 +138,10 @@ interface FormAppPage<T = string> extends BaseAppPage<T> {
 	formAction: Partial<{
 		[K in UserAction]: `?/${K}-${string}`;
 	}>;
+}
+
+export interface TimeEntriesDevice extends RemoveMethodsDeep<IResult> {
+	ip: string;
 }
 
 export type AppPages<T = string> = BaseAppPage<T> | FormAppPage<T>;
