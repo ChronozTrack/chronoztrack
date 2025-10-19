@@ -1,4 +1,4 @@
-import type { UsersDataFilter } from "$lib/data-utils/data-schema";
+import { usersFilterSchema, type UsersDataFilter } from "$lib/data-utils/data-schema";
 import type { SvelteFetch, UserTablesCore } from "$lib/app-types";
 import { type RawFormDataShape, getDateFormat } from "$lib/utils";
 import type { Operators, Simplify, SQL, TableRelationalConfig } from "drizzle-orm"
@@ -62,10 +62,18 @@ class UsersController {
     }
   }
 
-  public async selectMany(filters: UsersDataFilter) {
+  public async selectMany(filters: Record<string, string | string[]>) {
+    const validFilters = usersFilterSchema.safeParse(filters);
+    if (!validFilters.success) {
+      return {
+        error: validFilters.error
+      }
+    }
+    console.log(validFilters.data)
     return {
       rows: await db.query.tblUsers.findMany({
-        where: (user, operators) => this.#sqlFilter(user, operators, filters),
+        where: (user, operators) => this.#sqlFilter(user, operators, validFilters.data),
+        limit: validFilters.data.limit,
         columns: { passwordHash: false, roleId: false, supervisorId: false },
         with: {
           role: { columns: { id: true, code: true, name: true } },
@@ -97,7 +105,7 @@ class UsersController {
   ) {
     const sqlExistArr: SQL[] = [];
     const sqlArr: SQL[] = []
-    const { department = [], job = [], role = [], supervisor, active } = filters || {}
+    const { department = [], job = [], role = [], supervisor = [], active } = filters || {}
     const { eq, and, exists, inArray } = operators;
     if (department.length) {
       if (department.length === 1) {
@@ -119,7 +127,6 @@ class UsersController {
       sqlExistArr.push(eq(this.#tblDesignation.userId, user.id))
       sqlArr.push(exists(this.#db.select({ id: this.#tblDesignation.id }).from(this.#tblDesignation).where(and(...sqlExistArr))))
     }
-
     if (role.length) {
       if (role.length === 1) {
         sqlArr.push(eq(user.roleId, role[0]))
@@ -128,15 +135,15 @@ class UsersController {
       }
     }
 
-    if (supervisor) {
-      if (role.length === 1) {
+    if (supervisor.length) {
+      if (supervisor.length === 1) {
         sqlArr.push(eq(user.supervisorId, supervisor[0]))
       } else {
         sqlArr.push(inArray(user.supervisorId, supervisor))
       }
     }
 
-    if (active !== undefined) {
+    if (typeof active === 'boolean') {
       sqlArr.push(eq(user.active, active))
     }
 
@@ -186,7 +193,7 @@ class UsersController {
     if (error || !data) {
       return { user: null, error: { message: 'Failed to hash password, please try again later' } };
     }
-    
+
     return DEFAULT_ROLE
       ? { passwordHash: data, roleId: DEFAULT_ROLE }
       : { passwordHash: data };

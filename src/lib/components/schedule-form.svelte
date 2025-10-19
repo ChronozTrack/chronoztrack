@@ -65,7 +65,7 @@
 			startTime: '',
 			endTime: '',
 			description: '',
-			duration_min: 0
+			durationMin: 0
 		});
 	}
 
@@ -101,8 +101,8 @@
 
 		events.forEach((e: UserTimeEventSchedules) => {
 			e.startTime = initTime;
-			e.endTime = getEndTime(initTime, e.duration_min);
-			e.duration_min = getDuration(e.startTime, e.endTime);
+			e.endTime = getEndTime(initTime, e.durationMin);
+			e.durationMin = getDuration(e.startTime, e.endTime);
 			initTime = getEndTime(initTime, 120);
 		});
 
@@ -113,12 +113,12 @@
 
 	function setStartTime(v: string, event: UserTimeEventSchedules) {
 		event.startTime = v;
-		event.endTime = getEndTime(event.startTime, event.duration_min);
+		event.endTime = getEndTime(event.startTime, event.durationMin);
 	}
 
 	function setDurationMin(v: number, event: UserTimeEventSchedules) {
-		event.duration_min = v;
-		event.endTime = getEndTime(event.startTime, event.duration_min);
+		event.durationMin = v;
+		event.endTime = getEndTime(event.startTime, event.durationMin);
 	}
 
 	const debouncedSetClockIn = debounceSetter(setClockIn, 300);
@@ -264,8 +264,8 @@
 					<Table.Cell>
 						<input type="hidden" name={inputName('endTime')} value={event.endTime} />
 						<Input
-							name={inputName('duration_min')}
-							bind:value={() => event.duration_min, (v) => setDurationMin(v, event)}
+							name={inputName('durationMin')}
+							bind:value={() => event.durationMin, (v) => setDurationMin(v, event)}
 							type="number"
 							class="h-8 border-none text-right"
 							required

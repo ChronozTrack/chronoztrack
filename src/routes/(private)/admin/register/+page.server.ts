@@ -10,6 +10,7 @@ import { clientTemplates } from '$lib/server/controller/templates';
 import { parseRequest } from '$lib/utils';
 import { usersController } from '$lib/server/controller/users';
 import { prettifyError } from 'zod';
+import { setDummyData } from '$lib/server/db/seeder';
 
 const RESOURCE = 'admin.register';
 
@@ -54,6 +55,11 @@ export const actions = {
 			})
 		}
 		return { user: result[0] }
+	},
+	'create-dummy': async ({ fetch }) => {
+		await setDummyData(fetch)
+
+		return {}
 	}
 };
 

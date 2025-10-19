@@ -56,27 +56,28 @@
 		});
 
 		return async ({ result, update }) => {
-			if(result.type === 'error' || result.type === 'failure'){
-				let message = ''
-				if(result.type === 'error'){
-					console.error(result.error)
+			if (result.type === 'error' || result.type === 'failure') {
+				let message = '';
+				if (result.type === 'error') {
+					console.error(result.error);
 					message = result.error.message;
-				}else{
-					console.error(result.data?.message)
+				} else {
+					console.error(result.data?.message);
 					message = Object.entries(result.data?.message ?? {})
 						.filter((e) => e[1] !== undefined)
-						.map(([k, v]) => `${k}: ${v}`).join("\n");
+						.map(([k, v]) => `${k}: ${v}`)
+						.join('\n');
 				}
 
 				loading.reject(message);
-			}else{
-				if(result.type === 'success' && result.data){
+			} else {
+				if (result.type === 'success' && result.data) {
 					const { user } = result.data;
-					if(user.id){
+					if (user.id) {
 						loading.resolve(`User ${user.name} created successfully`);
 					}
 				}
-				update()
+				update();
 			}
 		};
 	};
@@ -157,6 +158,9 @@
 	}
 </script>
 
+<form method="POST" action="?/create-dummy">
+	<Button type="submit">Create Dummy</Button>
+</form>
 {#if userDepartment}
 	<form
 		method="POST"

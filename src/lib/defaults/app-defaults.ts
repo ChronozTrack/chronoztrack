@@ -51,6 +51,13 @@ export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId' | 'modifiedBy'>[
 	{ resourceId: 4, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true }
 ];
 
+export const FILTER_LIMITS = [
+	{ value: 25, label: '25 rows' },
+	{ value: 50, label: '50 rows' },
+	{ value: 100, label: '100 rows' },
+	{value: 500, label: '500 rows'}
+]
+
 export const SCHEDULE_TEMPLATE: TableTemplates = {
 	id: 0,
 	name: 'Default Template',
@@ -68,21 +75,21 @@ export const SCHEDULE_TEMPLATE: TableTemplates = {
 				timeEvent: 'break',
 				startTime: '08:00',
 				endTime: '08:15',
-				duration_min: 15,
+				durationMin: 15,
 				description: 'First Break'
 			},
 			{
 				timeEvent: 'lunch',
 				startTime: '12:00',
 				endTime: '13:00',
-				duration_min: 60,
+				durationMin: 60,
 				description: 'Lunch Break'
 			},
 			{
 				timeEvent: 'break',
 				startTime: '14:00',
 				endTime: '14:15',
-				duration_min: 15,
+				durationMin: 15,
 				description: 'Second Break'
 			}
 		]

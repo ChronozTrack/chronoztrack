@@ -72,7 +72,7 @@ export interface UserTimeEventSchedules {
 	timeEvent: (typeof TIME_EVENTS)[number];
 	startTime: string;
 	endTime: string;
-	duration_min: number;
+	durationMin: number;
 	description: string;
 }
 
@@ -146,3 +146,15 @@ export interface TimeEntriesDevice extends RemoveMethodsDeep<IResult> {
 
 export type AppPages<T = string> = BaseAppPage<T> | FormAppPage<T>;
 export type DialogAction = 'save' | 'clear' | 'delete' | 'cancel';
+
+export interface UsersData extends Omit<TableUsers, 'paswordHash' | 'supervisorId' | 'roleId'> {
+	role: RoleCore;
+	supervisor: Pick<TableUsers, 'id' | 'name'> | null;
+	designations:
+	| null
+	| {
+		job: OptionsCore | null;
+		department: OptionsCore | null;
+	}[];
+	schedules: TableSchedules[]
+}
