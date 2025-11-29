@@ -54,10 +54,10 @@
 						placeholder={details.label}
 					/>
 				{/if}
+				<Button size="icon" variant="ghost" onclick={() => dataFilters.removeFilter(i)}>
+					<X class="text-destructive" />
+				</Button>
 			{/if}
-			<Button size="icon" variant="ghost" onclick={() => dataFilters.removeFilter(i)}>
-				<X class="text-destructive" />
-			</Button>
 		</div>
 	{/each}
 </div>

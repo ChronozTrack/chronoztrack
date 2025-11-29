@@ -3,8 +3,10 @@ import type { User } from '$lib/app-types';
 import { usersController } from '$lib/server/controller/users';
 import { getUserAccess } from '$lib/server/controller/permission';
 import { error, fail } from '@sveltejs/kit';
-import { queryOptions } from '$lib/server/controller/db-helper';
+import { queryOptions, querySupervisors } from '$lib/server/controller/db-helper';
 import { ROLES_ADMIN } from '$lib/defaults/app-defaults';
+import { parseRequest } from '$lib/utils';
+import { prettifyError } from 'zod';
 
 const RESOURCE = 'admin.users';
 
@@ -16,6 +18,7 @@ export const load = (async ({ locals, url }) => {
   }
 
   const options = await getOptions(locals.user, userAccess.isAdmin());
+  const supervisors = await querySupervisors();
   const result = await usersController.selectMany(parseFilters(url.searchParams));
 
   if (result.error) {
@@ -24,9 +27,27 @@ export const load = (async ({ locals, url }) => {
 
   return {
     options,
+    supervisors,
     users: result.rows ?? []
   };
 }) satisfies PageServerLoad;
+
+export const actions = {
+  'get-users': async ({ request }) => {
+
+    const dataFilters = await parseRequest(request);
+    console.log(dataFilters)
+    const results = await usersController.selectMany(dataFilters);
+
+    if (results.error) {
+      return fail(400, {
+        message: prettifyError(results.error)
+      })
+    }
+
+    return { users: results.rows ?? [] }
+  }
+}
 
 async function getOptions(user: User, isAdmin: boolean = false) {
   const departmentId = getDepartmentId(user);

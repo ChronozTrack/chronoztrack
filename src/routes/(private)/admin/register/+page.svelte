@@ -26,6 +26,7 @@
 	import { BusyDeferred } from '$lib/data-utils';
 
 	let { data }: PageProps = $props();
+	const { timeZonesMap, timeZonesRawMap } = getTimezoneMaps();
 	const _user = (key: string) => `user[${key}]`;
 	const _designation = (key: string) => `user_designation[${key}]`;
 	const _schedule = (key: string) => `user_schedule[${key}]`;
@@ -33,7 +34,28 @@
 	const departments = new Map<number, OptionsCore>(data.options.departments.map((d) => [d.id, d]));
 	const jobs = new Map<number, OptionsCore>(data.options.jobs.map((j) => [j.id, j]));
 	const timeEvents = new Map<string, OptionsCore>(data.options.time_events.map((t) => [t.code, t]));
-	const { timeZonesMap, timeZonesRawMap } = getTimezoneMaps();
+	const supervisors = new Map<number, { id: number; name: string; department: string }>(
+		data.supervisors
+			.map((s) => {
+				return {
+					id: s.id,
+					name: s.name,
+					department: s.designations?.[0]?.department?.name ?? ''
+				};
+			})
+			.map((s) => [s.id, s])
+	);
+	const supervisorGroup = supervisors.values().reduce(
+		(obj, s) => {
+			if (!Object.hasOwn(obj, s.department)) {
+				obj[s.department] = [];
+			}
+
+			obj[s.department].push(s);
+			return obj;
+		},
+		{} as Record<string, { id: number; name: string; department: string }[]>
+	);
 
 	let deptFormElem: HTMLFormElement | null = $state(null);
 	let userId: number | null = $state(null);
@@ -41,6 +63,7 @@
 	let schedTemplates: NonNullable<TableTemplates>[] = $state([]);
 	let userDepartment: OptionsCore | undefined = $state();
 	let userJob: OptionsCore | undefined = $state();
+	let userSupervisor: { id: number; name: string; department: string } | undefined = $state();
 	let userSchedTemplate: NonNullable<TableTemplates> | undefined = $state();
 	let userSchedule: TableSchedules = $state(structuredClone(DEFAULT_SCHEDULE));
 	let draftSchedule: TableSchedules = $state(structuredClone(DEFAULT_SCHEDULE));
@@ -70,15 +93,13 @@
 				}
 
 				loading.reject(message);
-			} else {
-				if (result.type === 'success' && result.data) {
-					const { user } = result.data;
-					if (user.id) {
-						loading.resolve(`User ${user.name} created successfully`);
-					}
+			} else if (result.type === 'success' && result.data) {
+				const { user } = result.data;
+				if (user.id) {
+					loading.resolve(`User ${user.name} created successfully`);
 				}
-				update();
 			}
+			update();
 		};
 	};
 
@@ -250,6 +271,44 @@
 							/>
 						</div>
 						<div class="grid grid-cols-4 items-center gap-4">
+							<Label class="justify-end" for={_user('supervisorId')}>Supervisor</Label>
+							<Select.Root
+								type="single"
+								bind:value={
+									() => String(userSupervisor?.id ?? ''),
+									(v) => (userSupervisor = supervisors.get(Number(v)))
+								}
+								name={_user('supervisorId')}
+								required={true}
+								disabled={loading.isBusy}
+							>
+								<Select.Trigger class="col-span-3 w-full">
+									{#if userSupervisor}
+										{userSupervisor.name}
+									{:else}
+										Select Supervisor
+									{/if}
+								</Select.Trigger>
+								<Select.Content>
+									{#each Object.entries(supervisorGroup) as [dept, suplist], idx}
+										<Select.Group>
+											{#if idx > 0}
+												<Select.Separator />
+											{/if}
+											<Select.GroupHeading>{dept}</Select.GroupHeading>
+											{#each suplist as sup}
+												<Select.Item
+													value={String(sup.id)}
+													label={sup.name}
+													disabled={sup.id === userSupervisor?.id}
+												/>
+											{/each}
+										</Select.Group>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						</div>
+						<div class="grid grid-cols-4 items-center gap-4">
 							<Label class="justify-end" for={_designation('departmentId')}>Department</Label>
 							<Select.Root
 								type="single"
@@ -268,7 +327,7 @@
 								<Select.Content>
 									<Select.Group>
 										<Select.Label>Departments</Select.Label>
-										{#each departments.entries() as [id, dept] (id)}
+										{#each departments.entries() as [id, dept]}
 											<Select.Item
 												value={String(id)}
 												label={dept.name}
@@ -348,7 +407,7 @@
 									class="absolute top-2 right-2"
 									onclick={editUserSchedule}
 								>
-									<BusyIcon><Pencil /></BusyIcon>
+									<BusyIcon isBusy={loading.isBusy}><Pencil /></BusyIcon>
 								</Button>
 								<div class="grid grid-cols-4 items-center gap-4">
 									<Label class="justify-end">User Timezone:</Label>
@@ -388,7 +447,7 @@
 		</Card.Content>
 		<Card.Footer class="flex justify-end">
 			<Button form="form-register" type="submit" disabled={loading.isBusy}>
-				<BusyIcon>Submit</BusyIcon>
+				<BusyIcon isBusy={loading.isBusy}>Submit</BusyIcon>
 			</Button>
 		</Card.Footer>
 	</Card.Root>

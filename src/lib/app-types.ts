@@ -103,6 +103,14 @@ export type JobCore = Pick<TableJobs, 'id' | 'code' | 'name' | 'active'>;
 export type SupervisorCore = Pick<TableUsers, 'id' | 'name' | 'active'>;
 export type DepartmentCore = Pick<TableDepartments, 'id' | 'code' | 'name'>;
 export type OptionsCore = Pick<OptionsBaseTable, 'id' | 'code' | 'name' | 'active'>;
+export type SupervisorListCore = SupervisorCore & {
+	designations?: {
+		id: number;
+		active: boolean;
+		createdAt: string;
+		department: DepartmentCore;
+	}[];
+};
 
 export interface User extends UserCore {
 	role: RoleCore;
@@ -147,7 +155,7 @@ export interface TimeEntriesDevice extends RemoveMethodsDeep<IResult> {
 export type AppPages<T = string> = BaseAppPage<T> | FormAppPage<T>;
 export type DialogAction = 'save' | 'clear' | 'delete' | 'cancel';
 
-export interface UsersData extends Omit<TableUsers, 'paswordHash' | 'supervisorId' | 'roleId'> {
+export interface UsersData extends Omit<TableUsers, 'passwordHash' | 'supervisorId' | 'roleId'> {
 	role: RoleCore;
 	supervisor: Pick<TableUsers, 'id' | 'name'> | null;
 	designations:

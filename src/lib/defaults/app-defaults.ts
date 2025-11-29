@@ -42,7 +42,7 @@ export const APP_DOMAIN = env.PUBLIC_DOMAIN ?? 'chronoz';
 
 export const USER_ACTION = ['create', 'read', 'update', 'delete'] as const;
 export const APP_OPTIONS = ['jobs', 'departments', 'roles', 'time_events'] as const;
-
+export const SUPERVISOR_MIN_RESOURCE = [5, 6];
 //DEFAULT USER ACCESS [profile, user, time_entries, timesheets]
 export const DEFAULT_RESOURCES: Omit<TablePermissions, 'roleId' | 'modifiedBy'>[] = [
 	{ resourceId: 1, canCreate: true, canRead: true, canUpdate: true, canDelete: false, locked: true },

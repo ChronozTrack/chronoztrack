@@ -5,7 +5,7 @@ import type {
 } from '$lib/app-types';
 import { getUserAccess } from '$lib/server/controller/permission';
 import { error, fail } from '@sveltejs/kit';
-import { queryOptions } from '$lib/server/controller/db-helper';
+import { queryOptions, querySupervisors } from '$lib/server/controller/db-helper';
 import { clientTemplates } from '$lib/server/controller/templates';
 import { parseRequest } from '$lib/utils';
 import { usersController } from '$lib/server/controller/users';
@@ -22,8 +22,9 @@ export const load = (async ({ locals }) => {
 	}
 
 	const options = await getOptions(locals.user, userAccess.isAdmin());
+	const supervisors = await querySupervisors(true);
 
-	return { options };
+	return { options, supervisors };
 }) satisfies PageServerLoad;
 
 export const actions = {

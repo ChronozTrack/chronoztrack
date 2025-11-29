@@ -1,16 +1,15 @@
 import { usersFilterSchema, type UsersDataFilter } from "$lib/data-utils/data-schema";
-import type { SvelteFetch, UserTablesCore } from "$lib/app-types";
+import type { SvelteFetch, UsersData, UserTablesCore } from "$lib/app-types";
 import { type RawFormDataShape, getDateFormat } from "$lib/utils";
 import type { Operators, Simplify, SQL, TableRelationalConfig } from "drizzle-orm"
 import { db } from "$lib/server/db";
 import { desc } from "drizzle-orm";
 import { createSchemaFactory } from "drizzle-zod";
-import { tblDepartments, tblUserDesignation, tblUsers, tblUserSchedule } from "$lib/server/db/schema";
+import { tblUserDesignation, tblUsers, tblUserSchedule } from "$lib/server/db/schema";
 import { hashPassword } from "./auth";
 import { APP_DOMAIN, DEFAULT_ROLE } from "$lib/defaults/app-defaults";
+import type { ZodError } from "zod";
 
-type RltUserDesignation = typeof tblUserDesignation & TableRelationalConfig;
-type RltUserSchedule = typeof tblUserSchedule & TableRelationalConfig;
 type RltUser = typeof tblUsers & TableRelationalConfig;
 
 const { createInsertSchema } = createSchemaFactory({ coerce: true });
@@ -62,7 +61,10 @@ class UsersController {
     }
   }
 
-  public async selectMany(filters: Record<string, string | string[]>) {
+  public async selectMany(filters: UsersDataFilter): Promise<
+    | { rows: UsersData[]; error?: never }
+    | { rows?: never; error: ZodError<UsersDataFilter> }
+  > {
     const validFilters = usersFilterSchema.safeParse(filters);
     if (!validFilters.success) {
       return {
@@ -72,8 +74,6 @@ class UsersController {
     console.log(validFilters.data)
     return {
       rows: await db.query.tblUsers.findMany({
-        where: (user, operators) => this.#sqlFilter(user, operators, validFilters.data),
-        limit: validFilters.data.limit,
         columns: { passwordHash: false, roleId: false, supervisorId: false },
         with: {
           role: { columns: { id: true, code: true, name: true } },
@@ -92,8 +92,12 @@ class UsersController {
           schedules: {
             where: (schedules, { lte }) => lte(schedules.startDate, getDateFormat(new Date())),
             orderBy: [desc(this.#tblSchedule.startDate)],
+            limit: 1,
           }
-        }
+        },
+        where: (user, operators) => this.#sqlFilter(user, operators, validFilters.data),
+        orderBy: (user, { asc }) => asc(user.id),
+        limit: validFilters.data.limit
       })
     }
   }
@@ -105,8 +109,8 @@ class UsersController {
   ) {
     const sqlExistArr: SQL[] = [];
     const sqlArr: SQL[] = []
-    const { department = [], job = [], role = [], supervisor = [], active } = filters || {}
-    const { eq, and, exists, inArray } = operators;
+    const { department = [], job = [], role = [], supervisor = [], active, indexKey } = filters || {}
+    const { eq, and, exists, inArray, gt } = operators;
     if (department.length) {
       if (department.length === 1) {
         sqlExistArr.push(eq(this.#tblDesignation.departmentId, department[0]));
@@ -143,6 +147,10 @@ class UsersController {
       }
     }
 
+    if(indexKey){
+      sqlArr.push(gt(user.name, indexKey))
+    }
+
     if (typeof active === 'boolean') {
       sqlArr.push(eq(user.active, active))
     }
@@ -151,39 +159,6 @@ class UsersController {
 
     if (sqlArr.length === 1) return sqlArr[0];
 
-    return and(...sqlArr);
-  }
-
-
-  #designationFilter(
-    fields: Simplify<[RltUserDesignation['columns']] extends [never] ? {} : RltUserDesignation['columns']>,
-    operators: Operators,
-    filter: { department?: number[], job?: number[] }): SQL | undefined {
-    const { department = [], job = [] } = filter || {}
-    if (department.length === 0 && job.length === 0) return undefined;
-
-    const { eq, inArray, and } = operators;
-    const sqlArr: SQL[] = [];
-
-    if (department.length) {
-      if (department.length === 1) {
-        sqlArr.push(eq(fields.departmentId, department[0]));
-      } else {
-        sqlArr.push(inArray(fields.departmentId, department));
-      }
-    }
-
-    if (job.length) {
-      if (job.length === 1) {
-        sqlArr.push(eq(fields.jobId, job[0]));
-      } else {
-        sqlArr.push(inArray(fields.jobId, job));
-      }
-    }
-
-    if (sqlArr.length === 0) return undefined;
-
-    if (sqlArr.length === 1) return sqlArr[0];
 
     return and(...sqlArr);
   }

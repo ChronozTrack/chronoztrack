@@ -1,3 +1,4 @@
+import { SvelteMap } from "svelte/reactivity";
 
 type TextFilter = {
   name: string;
@@ -20,21 +21,32 @@ export type FilterValues = { name: string; value?: string | string[] };
 
 export class DataFilters {
   #filterList: FilterDetails[];
-  #currentFilters: FilterValues[] = $state([{ name: '', value: undefined }]);
-  #draftFilters: FilterValues[] = $state([{ name: '', value: undefined }]);
-  #limit: number;
+  #appliedFilters: FilterValues[] = $state([]);
+  #draftFilters: FilterValues[] = $state([]);
+  #limit: number = $state(25);
+  #pageKeys: number[] = $state([]);
+  #pageQuery: number = $state(0);
+  #page: number = $state(1);
 
-  constructor(filterList: FilterDetails[], limit?: number) {
+  constructor(filterList: FilterDetails[], url?: URL, limit?: number) {
     this.#filterList = filterList;
-    this.#limit = limit ?? 25;
+    this.#limit = limit ?? 25
+    if (url && url.search.length > 0) {
+      this.#setFilterFromUrl(url, filterList)
+    }
+
+    if (!this.#draftFilters.length) {
+      this.addFilter()
+    }
+
   }
 
   get filterList() {
     return this.#filterList;
   }
 
-  get currentFilters() {
-    return this.#currentFilters;
+  get appliedFilters() {
+    return this.#appliedFilters;
   }
 
   get draftFilters() {
@@ -54,24 +66,71 @@ export class DataFilters {
     return this.#limit;
   }
 
+  get pageQuery() {
+    return this.#pageQuery;
+  }
+
+  get page() {
+    return this.#page;
+  }
+
+  set page(v: number) {
+    this.#page = v;
+  }
+
+  set pageQuery(num: number) {
+    this.#pageQuery = num;
+  }
+
   set limit(value: number) {
     this.#limit = value;
   }
 
   get strLimit() {
-    return String(this.#limit);
+    return String(this.#limit)
+  }
+
+  get size() {
+    return this.#appliedFilters.reduce((count, obj) => {
+      if (obj.name !== '' && obj?.value?.length) {
+        count++;
+      }
+      return count;
+    }, 0)
   }
 
   set strLimit(value: string) {
-    this.#limit = Number(value) || 25;
+    this.#limit = Number(value)
   }
 
-  set currentFilters(value: FilterValues[]) {
-    this.#currentFilters = value;
+  set appliedFilters(value: FilterValues[]) {
+    this.#appliedFilters = value;
   }
 
   set draftFilters(value: FilterValues[]) {
     this.#draftFilters = value;
+  }
+
+  get pageKeys() {
+    return this.#pageKeys
+  }
+  get pageKeysStr() {
+    return this.#pageKeys.length > 0 ? this.#pageKeys.join(",") : ''
+  }
+
+  #setFilterFromUrl(url: URL, filterList: FilterDetails[]) {
+    const params = new URLSearchParams(url.search);
+    params.forEach((value, key) => {
+      const filter = filterList.find(f => f.name === key);
+      if (filter) {
+        this.#appliedFilters.push({ name: key, value })
+        this.#draftFilters.push({ name: key, value })
+      }
+    })
+  }
+
+  addPageKeys(key: number) {
+    this.#pageKeys.push(key)
   }
 
   addFilter() {
@@ -91,7 +150,7 @@ export class DataFilters {
   }
 
   updateFilters() {
-    this.#currentFilters = structuredClone($state.snapshot(this.#draftFilters))
+    this.#appliedFilters = structuredClone($state.snapshot(this.#draftFilters))
   }
 
   isNameDrafted(name: string) {

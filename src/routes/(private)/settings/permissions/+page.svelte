@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import type { DialogAction, TablePermissions } from '$lib/app-types';
+	import type { DialogAction, TablePermissions, TableRoles } from '$lib/app-types';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { DraftState, TableDataState } from '$lib/data-utils';
 	import { enhance } from '$app/forms';
@@ -31,9 +31,7 @@
 	let showDialog = $state(false);
 	let dialogAction: string = $state('Continue');
 	let dialogDescription: string = $state('Are you sure you want to proceed?');
-	let selectedRole = $derived(
-		data.settingsPermissions?.roles.find((role) => role.id === Number(activeRoleId))
-	);
+	let selectedRole: TableRoles | undefined = $state();
 
 	const permDraft = new DraftState<TablePermissions>(
 		'role_permissions',
@@ -70,7 +68,7 @@
 		return temp;
 	});
 
-	const onSelectRole: SubmitFunction = async () => {
+	const onQueryRole: SubmitFunction = async () => {
 		isBusy = true;
 		return async ({ result }) => {
 			if (result.type === 'success' && result.data) {
@@ -127,6 +125,10 @@
 		permDraft.deleteEntry(permission);
 		await tick();
 		onPendingAction('delete');
+	}
+
+	function onSelectRole(v: string) {
+		selectedRole = data.settingsPermissions?.roles.find((role) => role.id === Number(v));
 	}
 
 	function onEdit(entry: TablePermissions) {
@@ -254,9 +256,9 @@
 							</Sheet.Header>
 							{@const isFull = resources.length > 0 && resources.length === permData.size}
 							<Sheet.Footer class="flex flex-row items-center gap-2">
-								<Button variant="outline" onclick={addRoles} disabled={isFull || isBusy}
-									>Add Resources</Button
-								>
+								<Button variant="outline" onclick={addRoles} disabled={isFull || isBusy}>
+									Add Resources
+								</Button>
 								<Sheet.Close class={buttonVariants({ variant: 'destructive' })} disabled={isBusy}
 									>Cancel</Sheet.Close
 								>
@@ -267,10 +269,15 @@
 				<form
 					method="POST"
 					action="?/get-permissions"
-					use:enhance={onSelectRole}
+					use:enhance={onQueryRole}
 					bind:this={roleFormElem}
 				>
-					<Select.Root type="single" bind:value={activeRoleId} {onValueChange} name="roleId">
+					<Select.Root
+						type="single"
+						bind:value={() => String(selectedRole?.id ?? ''), onSelectRole}
+						{onValueChange}
+						name="roleId"
+					>
 						<Select.Trigger class="w-[180px]">
 							{selectedRole?.name ?? 'Selected Role'}
 						</Select.Trigger>
@@ -322,7 +329,7 @@
 						<Button
 							variant="outline"
 							size="sm"
-							disabled={permDraft.modifiedEntries.size > 0 || isBusy}
+							disabled={permDraft.modifiedEntries.size > 0 || isBusy || selectedRole?.locked}
 							onclick={onAddResource}
 						>
 							<BusyIcon {isBusy}><Plus /></BusyIcon>

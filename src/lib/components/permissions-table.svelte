@@ -6,7 +6,7 @@
 	import { Switch } from '$ui/switch/index';
 	import Lock from '@lucide/svelte/icons/lock';
 	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
-	import Trash from '@lucide/svelte/icons/trash';
+	import X from '@lucide/svelte/icons/x';
 	import type { DraftState } from '$lib/data-utils';
 
 	interface PermTableProps {
@@ -61,7 +61,7 @@
 						</Table.Cell>
 						<Table.Cell class="text-center">
 							<Button variant="ghost" size="sm" onclick={() => permDraft.discardEntry(mapKey)}>
-								<Trash class="text-destructive" />
+								<X class="text-destructive" />
 							</Button>
 						</Table.Cell>
 					{:else}
@@ -98,12 +98,12 @@
 									</DropdownMenu.Trigger>
 									<DropdownMenu.Content align="end" class="w-32">
 										<DropdownMenu.Item onSelect={() => permDraft.updateEntry(perm)}>
-											Edit</DropdownMenu.Item
-										>
+											Edit
+										</DropdownMenu.Item>
 										<DropdownMenu.Separator />
-										<DropdownMenu.Item onSelect={() => onDelete(perm)} variant="destructive"
-											>Delete</DropdownMenu.Item
-										>
+										<DropdownMenu.Item onSelect={() => onDelete(perm)} variant="destructive">
+											Delete
+										</DropdownMenu.Item>
 									</DropdownMenu.Content>
 								</DropdownMenu.Root>
 							{/if}

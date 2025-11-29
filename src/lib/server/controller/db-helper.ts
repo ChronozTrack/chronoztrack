@@ -1,8 +1,9 @@
-import type { OptionsCore, TableOptionsType, AppOptionsType, AppTableType } from "$lib/app-types";
-import { eq, inArray, and, type SQL, notInArray, getTableName, ne } from "drizzle-orm";
-import { tblDepartments, tblJobs, tblRoles, tblTimeEvents } from "$lib/server/db/schema";
-import { db } from "../db";
+import type { OptionsCore, TableOptionsType, AppOptionsType, AppTableType, SupervisorListCore } from "$lib/app-types";
 import type { BatchItem } from "drizzle-orm/batch";
+import { SUPERVISOR_MIN_RESOURCE } from '$lib/defaults/app-defaults';
+import { eq, inArray, and, type SQL, notInArray, ne, exists } from "drizzle-orm";
+import { tblDepartments, tblJobs, tblRolePermissions, tblRoles, tblTimeEvents, tblUsers } from "$lib/server/db/schema";
+import { db } from "../db";
 
 type FilterOptions = {
   type: 'include' | 'exclude' | "*";
@@ -12,6 +13,15 @@ type FilterOptions = {
 type QueryOptions = Partial<Record<AppOptionsType, FilterOptions>>
 
 type QueryOptionsResults = Record<AppOptionsType, OptionsCore[]>
+type QuerySupervisorsResults = {
+  id: number;
+  name: string;
+  designations?: {
+    id: number,
+    name: string,
+    active: boolean
+  }[]
+}
 
 const TABLE_MAPS: Record<AppOptionsType, TableOptionsType> = {
   jobs: tblJobs,
@@ -74,9 +84,9 @@ function parseFilterOptions<T extends TableOptionsType>(tbl: T, { type, ids, act
 function queryOptionTable<T extends TableOptionsType>(tbl: T, filters: FilterOptions) {
   const query = db.select({ id: tbl.id, code: tbl.code, name: tbl.name }).from(tbl).$dynamic()
   if (filters.type === "*") {
-    if(typeof filters.active === 'boolean'){
+    if (typeof filters.active === 'boolean') {
       return query.where(eq(tbl.active, filters.active))
-    }else{
+    } else {
       return query
     }
   } else {
@@ -85,4 +95,37 @@ function queryOptionTable<T extends TableOptionsType>(tbl: T, filters: FilterOpt
 
     return query.where(sqlCondition)
   }
+}
+
+export async function querySupervisors(withDesignation: boolean = false): Promise<SupervisorListCore[]> {
+  return await db.query.tblUsers.findMany({
+    columns: { id: true, name: true, active: true },
+    where: (users, { and, eq, exists }) =>
+      and(
+        eq(users.active, true),
+        exists(
+          db.select({ roleId: tblRolePermissions.roleId })
+            .from(tblRolePermissions)
+            .where(
+              and(
+                inArray(tblRolePermissions.resourceId, SUPERVISOR_MIN_RESOURCE),
+                eq(tblRolePermissions.roleId, users.roleId)
+              )
+            )
+        )
+      ),
+    with: !withDesignation ? undefined : {
+      designations: {
+        columns: { id: true, active: true, createdAt: true },
+        orderBy: (designation, { desc }) => desc(designation.createdAt),
+        limit: 1,
+        with: {
+          department: {
+            columns: { id: true, code: true, name: true, active: true },
+          }
+        }
+      }
+    }
+  }
+  )
 }
